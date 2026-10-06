@@ -100,6 +100,7 @@
     .toggle-track { position: relative; display: inline-block; width: 36px; height: 20px; border-radius: 999px; background: rgba(17,24,39,.18); transition: background .15s ease; }
     .toggle-track::after { position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.22); content: ""; transition: transform .15s ease; }
     .edit-toggle input:checked + .toggle-track { background: #111827; }
+    .auth-button { padding: 5px 9px; border: 1px solid rgba(17,24,39,.2); border-radius: 999px; background: rgba(255,255,255,.45); color: #111827; cursor: pointer; font: inherit; font-size: .7rem; }
     .edit-toggle input:checked + .toggle-track::after { transform: translateX(16px); }
     h1 { margin: 0; color: #111827; font-size: clamp(1.35rem, 4vw, 2.3rem); font-weight: 650; letter-spacing: .06em; }
     .status { color: var(--muted-text); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; }
@@ -208,7 +209,7 @@
     </filter>
   </svg>
   <main class="deck">
-    <header class="deck-header"><h1>Liquid Deck</h1><label class="edit-toggle"><input id="edit-mode" type="checkbox"><span class="toggle-track" aria-hidden="true"></span><span>edit</span></label></header>
+    <header class="deck-header"><h1>Liquid Deck</h1><div style="display:flex;align-items:center;gap:10px"><button class="auth-button" id="auth-button" type="button">login</button><label class="edit-toggle"><input id="edit-mode" type="checkbox"><span class="toggle-track" aria-hidden="true"></span><span>edit</span></label></div></header>
     <section class="grid" aria-label="Liquid Deck buttons">
       <button class="button" aria-label="時計"><span class="display"></span><span class="cap"><span class="value" id="clock">--:--</span></span></button>
       <button class="button" data-action="weather" aria-label="天気"><span class="display"></span><span class="cap weather-cap"><img class="weather-icon" id="weather-icon" src="./天気アイコン/晴れ・昼.png" alt="天気"><span class="weather-date" id="weather-date">--/--</span><span class="weather-temp" id="weather-temp">--℃</span></span></button>
@@ -245,6 +246,7 @@
     </section>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const clock = document.querySelector('#clock');
     const weatherDate = document.querySelector('#weather-date');
@@ -280,8 +282,37 @@
     const weatherModal = document.querySelector('#weather-modal');
     const weatherInput = document.querySelector('#weather-input');
     const weatherResults = document.querySelector('#weather-results');
+    const authButton = document.querySelector('#auth-button');
+    const supabaseClient = window.supabase?.createClient(
+      'https://mmxyzwydhewswlfpragp.supabase.co',
+      'sb_publishable_TWHw1Fc_r1OLBNUW47O0-w_fCxcC68S'
+    );
     const defaultWeatherLocation = { name: '東京都', latitude: 35.6762, longitude: 139.6503 };
     let weatherLocation = JSON.parse(localStorage.getItem('liquid-deck-weather-location') || 'null') || defaultWeatherLocation;
+    let currentUser = null;
+
+    const loadSyncedWeatherLocation = async () => {
+      if (!supabaseClient) return;
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      currentUser = session?.user || null;
+      if (!currentUser) return;
+      const { data } = await supabaseClient.from('user_settings').select('weather_location').eq('user_id', currentUser.id).maybeSingle();
+      if (data?.weather_location) {
+        weatherLocation = data.weather_location;
+        localStorage.setItem('liquid-deck-weather-location', JSON.stringify(weatherLocation));
+      }
+      authButton.textContent = 'logout';
+    };
+    const syncWeatherLocation = async () => {
+      if (!currentUser || !supabaseClient) return;
+      await supabaseClient.from('user_settings').upsert({ user_id: currentUser.id, weather_location: weatherLocation, updated_at: new Date().toISOString() });
+    };
+    authButton.addEventListener('click', async () => {
+      if (!supabaseClient) return;
+      if (currentUser) { await supabaseClient.auth.signOut(); currentUser = null; authButton.textContent = 'login'; return; }
+      await supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + window.location.pathname } });
+    });
+    loadSyncedWeatherLocation().then(() => loadWeather());
     const weatherIcons = {
       clearDay: './天気アイコン/晴れ・昼.png', clearNight: './天気アイコン/晴れ・よる.png', partlyCloudy: './天気アイコン/晴れときどき曇・昼兼夜.png',
       cloudy: './天気アイコン/曇り.png', fog: './天気アイコン/霧.png', lightRain: './天気アイコン/弱い雨・霧雨・にわか雨.png', rain: './天気アイコン/雨.png', heavyRain: './天気アイコン/強い雨.png',
@@ -330,6 +361,7 @@
         button.addEventListener('click', () => {
           weatherLocation = { name: place.name, latitude: place.latitude, longitude: place.longitude };
           localStorage.setItem('liquid-deck-weather-location', JSON.stringify(weatherLocation));
+          syncWeatherLocation();
           closeWeather();
           loadWeather();
         });
