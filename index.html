@@ -22,13 +22,13 @@
       --display-line: rgba(255, 255, 255, .84);
       --key-background: rgba(255, 255, 255, .38);
       --key-background-hover: rgba(255, 255, 255, .55);
-      --key-border: rgba(255, 255, 255, .86);
-      --key-radius: 18px;
+      --key-border: rgba(255, 255, 255, .52); /* 細い枠線 */
+      --key-radius: 12px; /* 小さめの角丸 */
       --key-blur: 16px;
       /* 透明キーの輪郭を見せるための控えめな影です。 */
       --key-shadow: 0 16px 24px rgba(89, 119, 142, .18), 0 4px 7px rgba(89, 119, 142, .10), inset 0 1px rgba(255,255,255,.9);
       --key-shadow-pressed: 0 5px 9px rgba(89, 119, 142, .12), inset 0 3px 9px rgba(117, 166, 188, .12);
-      --key-side-height: 5px; /* キーキャップ下側の見える厚み */
+      --key-side-height: 4px; /* キーキャップ下側の見える厚み */
       --key-side-color: rgba(111, 157, 177, .34);
       --key-tint: rgba(255, 255, 255, .06);
       --key-refraction: url(#liquid-glass-filter);
@@ -82,7 +82,8 @@
     .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--grid-gap); }
     .button {
       position: relative;
-      aspect-ratio: 1;
+      /* どの画面幅でも必ず正方形を維持します。 */
+      aspect-ratio: 1 / 1;
       min-width: 0;
       padding: 0;
       border: 0;
@@ -99,7 +100,7 @@
       align-content: center;
       gap: 5px;
       overflow: hidden;
-      border: 1px solid var(--display-line);
+      border: 1px solid rgba(255,255,255,.46);
       border-radius: calc(var(--key-radius) - 4px);
       background: linear-gradient(145deg, rgba(255,255,255,.66), var(--display-color));
       box-shadow: inset 0 0 18px rgba(255,255,255,.42), inset 0 -8px 18px rgba(108, 188, 219, .08);
@@ -126,8 +127,8 @@
       -webkit-backdrop-filter: blur(var(--key-blur)) saturate(1.35) var(--key-refraction);
       transition: transform .14s ease, background .14s ease, box-shadow .14s ease, border-color .14s ease;
     }
-    /* 背面ディスプレイは使わず、キーキャップ1層だけを表示します。 */
-    .display { display: none; }
+    /* 背面ディスプレイをキーキャップの下に表示します。 */
+    .display { display: grid; }
     .cap { position: relative; }
     .button:hover .cap { background: linear-gradient(145deg, rgba(255,255,255,.28), rgba(255,255,255,.08)); border-color: #fff; }
     .button:active .cap { transform: translateY(var(--key-side-height)) scale(.975); box-shadow: var(--key-shadow-pressed); }
