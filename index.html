@@ -212,7 +212,7 @@
     <header class="deck-header"><h1>Liquid Deck</h1><div style="display:flex;align-items:center;gap:10px"><button class="auth-button" id="auth-button" type="button">login</button><label class="edit-toggle"><input id="edit-mode" type="checkbox"><span class="toggle-track" aria-hidden="true"></span><span>edit</span></label></div></header>
     <section class="grid" aria-label="Liquid Deck buttons">
       <button class="button" aria-label="時計"><span class="display"></span><span class="cap"><span class="value" id="clock">--:--</span></span></button>
-      <button class="button" data-action="weather" aria-label="天気"><span class="display"></span><span class="cap weather-cap"><img class="weather-icon" id="weather-icon" src="./天気アイコン/晴れ・昼.png" alt="天気"><span class="weather-date" id="weather-date">--/--</span><span class="weather-temp" id="weather-temp">--℃</span></span></button>
+      <button class="button" data-action="weather" aria-label="天気"><span class="display"></span><span class="cap weather-cap"><img class="weather-icon" id="weather-icon" src="./assets/weather/clear-day.png" alt="天気"><span class="weather-date" id="weather-date">--/--</span><span class="weather-temp" id="weather-temp">--℃</span></span></button>
       <button class="button" data-action="qr" aria-label="QR作成"><span class="display"></span><span class="cap"><img class="icon-image" src="./QR.png" alt="QR作成"><span class="label">QR作成</span></span></button>
       <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./リンク.png" alt="サイト"><span class="label">サイト</span></span></button>
       <button class="button" aria-label="カレンダー"><span class="display"></span><span class="cap"><img class="icon-image" src="./カレンダー.png" alt="カレンダー"></span></button>
@@ -319,9 +319,9 @@
     supabaseClient?.auth.onAuthStateChange((_event, session) => updateAuthButton(session));
     loadSyncedWeatherLocation().then(() => loadWeather());
     const weatherIcons = {
-      clearDay: './天気アイコン/晴れ・昼.png', clearNight: './天気アイコン/晴れ・よる.png', partlyCloudy: './天気アイコン/晴れときどき曇・昼兼夜.png',
-      cloudy: './天気アイコン/曇り.png', fog: './天気アイコン/霧.png', lightRain: './天気アイコン/弱い雨・霧雨・にわか雨.png', rain: './天気アイコン/雨.png', heavyRain: './天気アイコン/強い雨.png',
-      snow: './天気アイコン/雪.png', heavySnow: './天気アイコン/大雪.png', thunderstorm: './天気アイコン/雷雨.png'
+      clearDay: './assets/weather/clear-day.png', clearNight: './assets/weather/clear-night.png', partlyCloudy: './assets/weather/partly-cloudy.png',
+      cloudy: './assets/weather/cloudy.png', fog: './assets/weather/fog.png', lightRain: './assets/weather/light-rain.png', rain: './assets/weather/rain.png', heavyRain: './assets/weather/heavy-rain.png',
+      snow: './assets/weather/snow.png', heavySnow: './assets/weather/heavy-snow.png', thunderstorm: './assets/weather/thunderstorm.png'
     };
     const iconForWeather = (code, isDay) => {
       if (code === 0) return isDay ? weatherIcons.clearDay : weatherIcons.clearNight;
