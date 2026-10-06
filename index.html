@@ -259,7 +259,7 @@
     };
     updateClock();
     setInterval(updateClock, 1000);
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').then((registration) => registration.update());
 
     const qrModal = document.querySelector('#qr-modal');
     const qrInput = document.querySelector('#qr-input');
