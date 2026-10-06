@@ -193,6 +193,16 @@
     .weather-results { display: grid; gap: 6px; margin-top: 10px; }
     .weather-result { padding: 9px; border: 1px solid rgba(17,24,39,.14); border-radius: 8px; background: rgba(255,255,255,.7); color: #111827; text-align: left; cursor: pointer; font: inherit; }
     .weather-close { float: right; padding: 5px 9px; border: 1px solid rgba(17,24,39,.18); border-radius: 8px; background: transparent; cursor: pointer; }
+    .speed-modal { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; padding: 20px; background: rgba(17,24,39,.24); backdrop-filter: blur(8px); }
+    .speed-modal.open { display: grid; }
+    .speed-card { width: min(92vw, 380px); padding: 22px; border: 1px solid rgba(255,255,255,.7); border-radius: 16px; background: rgba(255,255,255,.86); color: #111827; box-shadow: 0 18px 50px rgba(0,0,0,.2); }
+    .speed-card h2 { margin: 0 0 14px; font-size: 1rem; }
+    .speed-close { float: right; padding: 5px 9px; border: 1px solid rgba(17,24,39,.18); border-radius: 8px; background: transparent; cursor: pointer; }
+    .speed-start { width: 100%; padding: 10px; border: 1px solid rgba(17,24,39,.2); border-radius: 8px; background: rgba(255,255,255,.7); cursor: pointer; font: inherit; }
+    .speed-status { min-height: 1.4em; margin: 12px 0; color: #374151; font-size: .85rem; }
+    .speed-results { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .speed-result { padding: 10px; border-radius: 8px; background: rgba(17,24,39,.06); text-align: center; }
+    .speed-result strong { display: block; font-size: 1.05rem; }
     .empty .display { background: rgb(255 255 255 / var(--display-opacity)); box-shadow: inset 0 0 14px rgb(255 255 255 / var(--display-opacity)); }
     .empty .cap { background: rgba(255,255,255,.12); opacity: .82; }
 
@@ -216,7 +226,7 @@
       <button class="button" data-action="qr" aria-label="QR作成"><span class="display"></span><span class="cap"><img class="icon-image" src="./QR.png" alt="QR作成"><span class="label">QR作成</span></span></button>
       <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./リンク.png" alt="サイト"><span class="label">サイト</span></span></button>
       <button class="button" aria-label="カレンダー"><span class="display"></span><span class="cap"><img class="icon-image" src="./カレンダー.png" alt="カレンダー"></span></button>
-      <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./スピード.png" alt="速度テスト"><span class="label">速度テスト</span></span></button>
+      <button class="button" data-action="speed" aria-label="速度テスト"><span class="display"></span><span class="cap"><img class="icon-image" src="./スピード.png" alt="速度テスト"><span class="label">速度テスト</span></span></button>
       <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./後で見る.png" alt="後で見る"><span class="label">後で見る</span></span></button>
       <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./設定.png" alt="設定"><span class="label">設定</span></span></button>
       <button class="button empty" aria-label="未使用"><span class="display"></span><span class="cap"></span></button>
@@ -235,6 +245,15 @@
       <h2 id="weather-title">地域を選択（現在：東京都）</h2>
       <input class="weather-input" id="weather-input" type="search" placeholder="例：東京都、大阪市">
       <div class="weather-results" id="weather-results"></div>
+    </section>
+  </div>
+  <div class="speed-modal" id="speed-modal" aria-hidden="true">
+    <section class="speed-card" role="dialog" aria-modal="true" aria-labelledby="speed-title">
+      <button class="speed-close" id="speed-close" type="button">閉じる</button>
+      <h2 id="speed-title">回線速度テスト</h2>
+      <button class="speed-start" id="speed-start" type="button">測定開始</button>
+      <p class="speed-status" id="speed-status">ボタンを押すと測定します。</p>
+      <div class="speed-results"><div class="speed-result">Download<strong id="speed-download">--</strong></div><div class="speed-result">Upload<strong id="speed-upload">--</strong></div><div class="speed-result">Ping<strong id="speed-ping">--</strong></div><div class="speed-result">Global IP<strong id="speed-ip">--</strong></div></div>
     </section>
   </div>
   <div class="qr-modal" id="qr-modal" aria-hidden="true">
@@ -401,6 +420,44 @@
     weatherModal.addEventListener('click', (event) => { if (event.target === weatherModal) closeWeather(); });
     loadWeather();
     setInterval(loadWeather, 10 * 60 * 1000);
+
+    const speedModal = document.querySelector('#speed-modal');
+    const speedStatus = document.querySelector('#speed-status');
+    const openSpeed = () => { speedModal.classList.add('open'); speedModal.setAttribute('aria-hidden', 'false'); };
+    const closeSpeed = () => { speedModal.classList.remove('open'); speedModal.setAttribute('aria-hidden', 'true'); };
+    document.querySelector('[data-action="speed"]').addEventListener('click', openSpeed);
+    document.querySelector('#speed-close').addEventListener('click', closeSpeed);
+    speedModal.addEventListener('click', (event) => { if (event.target === speedModal) closeSpeed(); });
+    document.querySelector('#speed-start').addEventListener('click', async () => {
+      const setResult = (id, value) => { document.querySelector(id).textContent = value; };
+      speedStatus.textContent = '測定中…';
+      try {
+        const pingTimes = [];
+        for (let i = 0; i < 3; i += 1) {
+          const start = performance.now();
+          await fetch(`https://speed.cloudflare.com/__down?bytes=0&cb=${Date.now()}-${i}`, { cache: 'no-store' });
+          pingTimes.push(performance.now() - start);
+        }
+        const ping = Math.round(pingTimes.reduce((sum, value) => sum + value, 0) / pingTimes.length);
+        const downloadStart = performance.now();
+        const downloadResponse = await fetch(`https://speed.cloudflare.com/__down?bytes=5000000&cb=${Date.now()}`, { cache: 'no-store' });
+        const downloadData = await downloadResponse.arrayBuffer();
+        const downloadMbps = (downloadData.byteLength * 8 / ((performance.now() - downloadStart) / 1000) / 1000000).toFixed(1);
+        const uploadData = new Uint8Array(1000000);
+        const uploadStart = performance.now();
+        await fetch(`https://speed.cloudflare.com/__up?cb=${Date.now()}`, { method: 'POST', body: uploadData, cache: 'no-store' });
+        const uploadMbps = (uploadData.byteLength * 8 / ((performance.now() - uploadStart) / 1000) / 1000000).toFixed(1);
+        let ip = '--';
+        try { ip = (await (await fetch('https://api64.ipify.org?format=json', { cache: 'no-store' })).json()).ip; } catch {}
+        setResult('#speed-download', `${downloadMbps} Mbps`);
+        setResult('#speed-upload', `${uploadMbps} Mbps`);
+        setResult('#speed-ping', `${ping} ms`);
+        setResult('#speed-ip', ip);
+        speedStatus.textContent = '測定完了';
+      } catch (error) {
+        speedStatus.textContent = '測定に失敗しました。通信状態を確認してください。';
+      }
+    });
 
     // 編集モードで並べ替えた順番を保存します。
     const buttons = [...grid.querySelectorAll('.button')];
