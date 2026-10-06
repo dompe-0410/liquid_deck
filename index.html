@@ -290,7 +290,6 @@
       <div class="setting-row"><span>時計表示</span><select id="clock-format"><option value="24">24時間</option><option value="12">12時間</option></select></div>
       <div class="setting-row"><span>天気更新</span><select id="weather-interval"><option value="10">10分</option><option value="30">30分</option><option value="60">60分</option></select></div>
       <div class="setting-row"><span>並び順</span><button id="reset-layout" type="button">初期化</button></div>
-      <div class="setting-wide"><strong>上位版よく使う</strong><input id="premium-title" type="text" placeholder="サイト名"><input id="premium-url" type="url" placeholder="https://example.com"><input id="premium-icon" type="file" accept="image/png,image/jpeg,image/webp"><span class="setting-note">空いているボタンへ自動登録。カスタム画像は320×320px以下です。</span><button id="premium-save" type="button">空いているボタンに登録</button></div>
     </section>
   </div>
   <div class="qr-modal" id="qr-modal" aria-hidden="true">
@@ -372,7 +371,6 @@
     const defaultWeatherLocation = { name: '東京都', latitude: 35.6762, longitude: 139.6503 };
     let weatherLocation = JSON.parse(localStorage.getItem('liquid-deck-weather-location') || 'null') || defaultWeatherLocation;
     let currentUser = null;
-    let premiumLinks = JSON.parse(localStorage.getItem('liquid-deck-premium-links') || '{}');
     let savedLinks = JSON.parse(localStorage.getItem('liquid-deck-saved-links') || '[]');
     let laterLinks = JSON.parse(localStorage.getItem('liquid-deck-later-links') || '[]');
     let syncedLayoutOrder = null;
@@ -395,7 +393,7 @@
       const { data: { session } } = await supabaseClient.auth.getSession();
       updateAuthButton(session);
       if (!currentUser) return;
-      const { data, error } = await supabaseClient.from('user_settings').select('weather_location, layout_order, premium_links, saved_links, later_links').eq('user_id', currentUser.id).maybeSingle();
+      const { data, error } = await supabaseClient.from('user_settings').select('weather_location, layout_order, saved_links, later_links').eq('user_id', currentUser.id).maybeSingle();
       if (error) console.warn('同期データの読み込みに失敗しました。Supabaseの列追加を確認してください。', error);
       if (!data) {
         await syncUserSettings();
@@ -407,13 +405,12 @@
       }
       syncedLayoutOrder = data?.layout_order;
       applyLayoutOrder(syncedLayoutOrder);
-      if (data?.premium_links) { premiumLinks = data.premium_links; localStorage.setItem('liquid-deck-premium-links', JSON.stringify(premiumLinks)); applyPremiumLinks(); }
       if (Array.isArray(data?.saved_links)) { savedLinks = data.saved_links; localStorage.setItem('liquid-deck-saved-links', JSON.stringify(savedLinks)); renderLinkList('saved'); }
       if (Array.isArray(data?.later_links)) { laterLinks = data.later_links; localStorage.setItem('liquid-deck-later-links', JSON.stringify(laterLinks)); renderLinkList('later'); }
     };
     const syncUserSettings = async () => {
       if (!currentUser || !supabaseClient) return;
-      const { error } = await supabaseClient.from('user_settings').upsert({ user_id: currentUser.id, weather_location: weatherLocation, layout_order: [...grid.children].map((item) => item.dataset.slot), premium_links: premiumLinks, saved_links: savedLinks, later_links: laterLinks, updated_at: new Date().toISOString() });
+      const { error } = await supabaseClient.from('user_settings').upsert({ user_id: currentUser.id, weather_location: weatherLocation, layout_order: [...grid.children].map((item) => item.dataset.slot), saved_links: savedLinks, later_links: laterLinks, updated_at: new Date().toISOString() });
       if (error) console.warn('user_settings同期に失敗しました。SQLの列追加を確認してください。', error);
     };
     authButton.addEventListener('click', async () => {
@@ -565,39 +562,6 @@
     document.querySelector('#settings-close').addEventListener('click', closeSettings);
     settingsModal.addEventListener('click', (event) => { if (event.target === settingsModal) closeSettings(); });
     settingsAuth.addEventListener('click', () => { authButton.click(); });
-    document.querySelector('#premium-save').addEventListener('click', async () => {
-      const title = document.querySelector('#premium-title').value.trim();
-      const url = document.querySelector('#premium-url').value.trim();
-      const file = document.querySelector('#premium-icon').files[0];
-      if (!url) return;
-      try { new URL(url); } catch { return; }
-      const usedSlots = new Set(Object.keys(premiumLinks));
-      const target = [...grid.children].find((button) => button.classList.contains('empty') && !usedSlots.has(button.dataset.slot));
-      if (!target) { alert('空いているボタンがありません。'); return; }
-      const slot = target.dataset.slot;
-      let iconUrl = '';
-      if (file) {
-        const image = await createImageBitmap(file);
-        if (image.width > 320 || image.height > 320) { alert('画像は320×320px以下にしてください。'); return; }
-        if (currentUser && supabaseClient) {
-          const path = `${currentUser.id}/${slot}-${Date.now()}.${file.name.split('.').pop()}`;
-          const upload = await supabaseClient.storage.from('custom-icons').upload(path, file, { upsert: true });
-          if (!upload.error) {
-            iconUrl = supabaseClient.storage.from('custom-icons').getPublicUrl(path).data.publicUrl;
-          } else {
-            // Storageのバケットやポリシー未設定でも、端末保存なら登録を完了させます。
-            console.warn('カスタム画像のStorage保存に失敗したため、端末保存へ切り替えます。', upload.error);
-          }
-        } else {
-          iconUrl = await new Promise((resolve) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.readAsDataURL(file); });
-        }
-      }
-      if (!iconUrl) iconUrl = faviconFor(url);
-      premiumLinks[slot] = { title: title || url, url, iconUrl };
-      localStorage.setItem('liquid-deck-premium-links', JSON.stringify(premiumLinks));
-      applyPremiumLinks();
-      await syncUserSettings();
-    });
     clockFormatSelect.addEventListener('change', () => { clockFormat = clockFormatSelect.value; localStorage.setItem('liquid-deck-clock-format', clockFormat); updateClock(); });
     weatherIntervalSelect.addEventListener('change', () => { weatherRefreshMinutes = Number(weatherIntervalSelect.value); localStorage.setItem('liquid-deck-weather-interval', String(weatherRefreshMinutes)); scheduleWeatherRefresh(); });
     document.querySelector('#reset-layout').addEventListener('click', () => {
@@ -614,23 +578,6 @@
     // 編集モードで並べ替えた順番を保存します。
     const buttons = [...grid.querySelectorAll('.button')];
     buttons.forEach((button, index) => { button.dataset.slot = String(index); });
-    const applyPremiumLinks = () => {
-      Object.entries(premiumLinks).forEach(([slot, link]) => {
-        const button = buttons.find((item) => item.dataset.slot === slot);
-        if (!button || !link) return;
-        const cap = button.querySelector('.cap');
-        cap.replaceChildren();
-        const image = document.createElement('img');
-        image.className = 'icon-image';
-        image.alt = link.title || 'サイト';
-        image.src = link.iconUrl || `https://icons.duckduckgo.com/ip3/${new URL(link.url).hostname}.ico`;
-        cap.appendChild(image);
-       button.classList.remove('empty');
-        button.title = link.title || link.url;
-        button.onclick = () => { if (!editMode.checked) window.open(link.url, '_blank', 'noopener'); };
-      });
-    };
-    applyPremiumLinks();
     const savedOrder = JSON.parse(localStorage.getItem('liquid-deck-order') || 'null');
     applyLayoutOrder(syncedLayoutOrder || savedOrder);
 
