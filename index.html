@@ -203,6 +203,13 @@
     .speed-results { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .speed-result { padding: 10px; border-radius: 8px; background: rgba(17,24,39,.06); text-align: center; }
     .speed-result strong { display: block; font-size: 1.05rem; }
+    .settings-modal { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; padding: 20px; background: rgba(17,24,39,.24); backdrop-filter: blur(8px); }
+    .settings-modal.open { display: grid; }
+    .settings-card { width: min(92vw, 380px); max-height: 88svh; overflow: auto; padding: 22px; border: 1px solid rgba(255,255,255,.7); border-radius: 16px; background: rgba(255,255,255,.86); color: #111827; box-shadow: 0 18px 50px rgba(0,0,0,.2); }
+    .settings-card h2 { margin: 0 0 16px; font-size: 1rem; }
+    .settings-close { float: right; padding: 5px 9px; border: 1px solid rgba(17,24,39,.18); border-radius: 8px; background: transparent; cursor: pointer; }
+    .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid rgba(17,24,39,.1); font-size: .85rem; }
+    .setting-row button, .setting-row select { padding: 6px 9px; border: 1px solid rgba(17,24,39,.2); border-radius: 8px; background: rgba(255,255,255,.7); color: #111827; font: inherit; }
     .empty .display { background: rgb(255 255 255 / var(--display-opacity)); box-shadow: inset 0 0 14px rgb(255 255 255 / var(--display-opacity)); }
     .empty .cap { background: rgba(255,255,255,.12); opacity: .82; }
 
@@ -228,7 +235,7 @@
       <button class="button" aria-label="カレンダー"><span class="display"></span><span class="cap"><img class="icon-image" src="./カレンダー.png" alt="カレンダー"></span></button>
       <button class="button" data-action="speed" aria-label="速度テスト"><span class="display"></span><span class="cap"><img class="icon-image" src="./スピード.png" alt="速度テスト"><span class="label">速度テスト</span></span></button>
       <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./後で見る.png" alt="後で見る"><span class="label">後で見る</span></span></button>
-      <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./設定.png" alt="設定"><span class="label">設定</span></span></button>
+      <button class="button" data-action="settings" aria-label="設定"><span class="display"></span><span class="cap"><img class="icon-image" src="./設定.png" alt="設定"><span class="label">設定</span></span></button>
       <button class="button empty" aria-label="未使用"><span class="display"></span><span class="cap"></span></button>
       <button class="button empty" aria-label="未使用"><span class="display"></span><span class="cap"></span></button>
       <button class="button empty" aria-label="未使用"><span class="display"></span><span class="cap"></span></button>
@@ -256,6 +263,16 @@
       <div class="speed-results"><div class="speed-result">Download<strong id="speed-download">--</strong></div><div class="speed-result">Upload<strong id="speed-upload">--</strong></div><div class="speed-result">Ping<strong id="speed-ping">--</strong></div><div class="speed-result">Global IP<strong id="speed-ip">--</strong></div></div>
     </section>
   </div>
+  <div class="settings-modal" id="settings-modal" aria-hidden="true">
+    <section class="settings-card" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <button class="settings-close" id="settings-close" type="button">閉じる</button>
+      <h2 id="settings-title">設定</h2>
+      <div class="setting-row"><span>アカウント</span><button id="settings-auth" type="button">login</button></div>
+      <div class="setting-row"><span>時計表示</span><select id="clock-format"><option value="24">24時間</option><option value="12">12時間</option></select></div>
+      <div class="setting-row"><span>天気更新</span><select id="weather-interval"><option value="10">10分</option><option value="30">30分</option><option value="60">60分</option></select></div>
+      <div class="setting-row"><span>並び順</span><button id="reset-layout" type="button">初期化</button></div>
+    </section>
+  </div>
   <div class="qr-modal" id="qr-modal" aria-hidden="true">
     <section class="qr-card" role="dialog" aria-modal="true" aria-labelledby="qr-title">
       <h2 id="qr-title">QR作成</h2>
@@ -271,9 +288,12 @@
     const weatherDate = document.querySelector('#weather-date');
     const grid = document.querySelector('.grid');
     const editMode = document.querySelector('#edit-mode');
+    let clockFormat = localStorage.getItem('liquid-deck-clock-format') || '24';
+    let weatherRefreshMinutes = Number(localStorage.getItem('liquid-deck-weather-interval') || '10');
+    let weatherRefreshTimer;
     const updateClock = () => {
       const now = new Date();
-      clock.textContent = new Intl.DateTimeFormat('ja-JP', { hour: '2-digit', minute: '2-digit' }).format(now);
+      clock.textContent = new Intl.DateTimeFormat('ja-JP', { hour: '2-digit', minute: '2-digit', hour12: clockFormat === '12' }).format(now);
       weatherDate.textContent = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' }).format(now);
     };
     updateClock();
@@ -357,11 +377,6 @@
       if (currentUser) { await supabaseClient.auth.signOut(); currentUser = null; authButton.textContent = 'login'; return; }
       await supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: hostedAppUrl } });
     });
-    // 認証状態の変化は、画面初期化後に設定を読み直します。
-    supabaseClient?.auth.onAuthStateChange((_event, session) => {
-      updateAuthButton(session);
-      if (session) setTimeout(() => loadSyncedWeatherLocation().then(() => loadWeather()), 0);
-    });
     const weatherIcons = {
       clearDay: './assets/weather/clear-day.png', clearNight: './assets/weather/clear-night.png', partlyCloudy: './assets/weather/partly-cloudy.png',
       cloudy: './assets/weather/cloudy.png', fog: './assets/weather/fog.png', lightRain: './assets/weather/light-rain.png', rain: './assets/weather/rain.png', heavyRain: './assets/weather/heavy-rain.png',
@@ -418,8 +433,12 @@
       }));
     });
     weatherModal.addEventListener('click', (event) => { if (event.target === weatherModal) closeWeather(); });
+    const scheduleWeatherRefresh = () => {
+      clearInterval(weatherRefreshTimer);
+      weatherRefreshTimer = setInterval(loadWeather, weatherRefreshMinutes * 60 * 1000);
+    };
     loadWeather();
-    setInterval(loadWeather, 10 * 60 * 1000);
+    scheduleWeatherRefresh();
 
     const speedModal = document.querySelector('#speed-modal');
     const speedStatus = document.querySelector('#speed-status');
@@ -457,6 +476,35 @@
       } catch (error) {
         speedStatus.textContent = '測定に失敗しました。通信状態を確認してください。';
       }
+    });
+
+    const settingsModal = document.querySelector('#settings-modal');
+    const settingsAuth = document.querySelector('#settings-auth');
+    const clockFormatSelect = document.querySelector('#clock-format');
+    const weatherIntervalSelect = document.querySelector('#weather-interval');
+    const openSettings = () => {
+      settingsAuth.textContent = currentUser ? 'logout' : 'login';
+      clockFormatSelect.value = clockFormat;
+      weatherIntervalSelect.value = String(weatherRefreshMinutes);
+      settingsModal.classList.add('open');
+      settingsModal.setAttribute('aria-hidden', 'false');
+    };
+    const closeSettings = () => { settingsModal.classList.remove('open'); settingsModal.setAttribute('aria-hidden', 'true'); };
+    document.querySelector('[data-action="settings"]').addEventListener('click', openSettings);
+    document.querySelector('#settings-close').addEventListener('click', closeSettings);
+    settingsModal.addEventListener('click', (event) => { if (event.target === settingsModal) closeSettings(); });
+    settingsAuth.addEventListener('click', () => { authButton.click(); });
+    clockFormatSelect.addEventListener('change', () => { clockFormat = clockFormatSelect.value; localStorage.setItem('liquid-deck-clock-format', clockFormat); updateClock(); });
+    weatherIntervalSelect.addEventListener('change', () => { weatherRefreshMinutes = Number(weatherIntervalSelect.value); localStorage.setItem('liquid-deck-weather-interval', String(weatherRefreshMinutes)); scheduleWeatherRefresh(); });
+    document.querySelector('#reset-layout').addEventListener('click', () => {
+      [...grid.children].sort((a, b) => Number(a.dataset.slot) - Number(b.dataset.slot)).forEach((button) => grid.appendChild(button));
+      localStorage.removeItem('liquid-deck-order');
+      syncUserSettings();
+    });
+    supabaseClient?.auth.onAuthStateChange((_event, session) => {
+      updateAuthButton(session);
+      settingsAuth.textContent = session?.user ? 'logout' : 'login';
+      if (session) setTimeout(() => loadSyncedWeatherLocation().then(() => loadWeather()), 0);
     });
 
     // 編集モードで並べ替えた順番を保存します。
