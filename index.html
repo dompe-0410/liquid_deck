@@ -529,6 +529,12 @@
       saved: { modal: document.querySelector('#links-modal'), list: document.querySelector('#links-list'), title: document.querySelector('#links-title-input'), url: document.querySelector('#links-url-input') },
       later: { modal: document.querySelector('#later-modal'), list: document.querySelector('#later-list'), title: document.querySelector('#later-title-input'), url: document.querySelector('#later-url-input') }
     };
+    // スマホでは「youtube.com」のように入力されることが多いため、https://を自動補完します。
+    const normalizeUrl = (value) => {
+      const text = value.trim();
+      if (!text) return null;
+      try { return new URL(/^https?:\/\//i.test(text) ? text : `https://${text}`).href; } catch { return null; }
+    };
     const faviconFor = (url) => { try { return `https://icons.duckduckgo.com/ip3/${new URL(url).hostname}.ico`; } catch { return './リンク.png'; } };
     const renderLinkList = (kind) => {
       const info = linkModalInfo[kind]; const items = kind === 'saved' ? savedLinks : laterLinks; info.list.replaceChildren();
@@ -547,7 +553,7 @@
       const info = linkModalInfo[kind]; const action = kind === 'saved' ? 'links' : 'later'; const prefix = kind === 'saved' ? 'links' : 'later';
       document.querySelector(`[data-action="${action}"]`).addEventListener('click', () => openLinkModal(kind)); document.querySelector(`#${prefix}-close`).addEventListener('click', () => closeLinkModal(kind));
       info.modal.addEventListener('click', (event) => { if (event.target === info.modal) closeLinkModal(kind); });
-      document.querySelector(`#${prefix}-add`).addEventListener('click', () => { const title = info.title.value.trim(); const url = info.url.value.trim(); try { new URL(url); } catch { info.url.focus(); return; } const item = { title: title || url, url, iconUrl: faviconFor(url) }; const items = kind === 'saved' ? savedLinks : laterLinks; items.push(item); localStorage.setItem(kind === 'saved' ? 'liquid-deck-saved-links' : 'liquid-deck-later-links', JSON.stringify(items)); info.title.value = ''; info.url.value = ''; renderLinkList(kind); syncUserSettings(); });
+      document.querySelector(`#${prefix}-add`).addEventListener('click', () => { const title = info.title.value.trim(); const url = normalizeUrl(info.url.value); if (!url) { info.url.focus(); return; } const item = { title: title || url, url, iconUrl: faviconFor(url) }; const items = kind === 'saved' ? savedLinks : laterLinks; items.push(item); localStorage.setItem(kind === 'saved' ? 'liquid-deck-saved-links' : 'liquid-deck-later-links', JSON.stringify(items)); info.title.value = ''; info.url.value = ''; renderLinkList(kind); syncUserSettings(); });
     });
     renderLinkList('saved'); renderLinkList('later');
 
