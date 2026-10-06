@@ -7,13 +7,13 @@
   <title>Liquid Deck</title>
   <style>
     :root {
-      /* Main visual controls: adjust these values to tune the material. */
+      /* 見た目を調整する主要な設定です。 */
       --page-background: #f3f7fb;
-      /* Background light pools: adjust color, opacity, and position below. */
-      --page-glow-a: rgba(181, 229, 255, .62); /* blue */
-      --page-glow-b: rgba(222, 207, 255, .52); /* purple */
-      --page-glow-c: rgba(218, 238, 157, .46); /* yellow-green */
-      --page-glow-blur: 28px; /* lower = more visible shape */
+      /* 背景の光。色・透明度・位置を調整できます。 */
+      --page-glow-a: rgba(181, 229, 255, .62); /* 青 */
+      --page-glow-b: rgba(222, 207, 255, .52); /* 紫 */
+      --page-glow-c: rgba(218, 238, 157, .46); /* 黄緑 */
+      --page-glow-blur: 28px; /* 小さくすると光の形が見えやすくなります。 */
       --page-glow-c-size: 24vw;
       --page-text: #274052;
       --muted-text: #7890a0;
@@ -25,12 +25,12 @@
       --key-border: rgba(255, 255, 255, .86);
       --key-radius: 18px;
       --key-blur: 16px;
-      /* Outer shadow separates the transparent cap from its display. */
+      /* 透明キーの輪郭を見せるための控えめな影です。 */
       --key-shadow: 0 16px 24px rgba(89, 119, 142, .18), 0 4px 7px rgba(89, 119, 142, .10), inset 0 1px rgba(255,255,255,.9);
       --key-shadow-pressed: 0 5px 9px rgba(89, 119, 142, .12), inset 0 3px 9px rgba(117, 166, 188, .12);
-      --key-side-height: 5px; /* visible lower side of the keycap */
+      --key-side-height: 5px; /* キーキャップ下側の見える厚み */
       --key-side-color: rgba(111, 157, 177, .34);
-      --key-tint: rgba(255, 255, 255, .15);
+      --key-tint: rgba(255, 255, 255, .06);
       --key-refraction: url(#liquid-glass-filter);
       --grid-gap: clamp(10px, 2.6vw, 20px);
     }
@@ -44,7 +44,8 @@
       overflow-x: hidden;
       color: var(--page-text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: var(--page-background);
+      /* 追加された画像を画面全体の背景に使います。 */
+      background: var(--page-background) url('./o0800053415553884102.jpg') center / cover fixed;
     }
 
     body::before, body::after {
@@ -59,7 +60,7 @@
     }
     body::before { top: -18vw; left: -12vw; background: var(--page-glow-a); }
     body::after { right: -15vw; bottom: -20vw; background: var(--page-glow-b); }
-    /* A third pool uses the same blur as the blue and purple pools. */
+    /* 黄緑の光も青・紫と同じぼかしを使います。 */
     .ambient-lime {
       position: fixed;
       z-index: -1;
@@ -117,15 +118,18 @@
       border-bottom: 3px solid var(--key-side-color);
       border-radius: var(--key-radius);
       background-color: var(--key-tint);
-      /* Thin top reflection + nearly invisible body preserve transparency. */
+      /* 上面の反射だけを残し、本体はできるだけ透明にします。 */
       background-image: linear-gradient(145deg, rgba(255,255,255,.32), rgba(255,255,255,.025) 46%, rgba(255,255,255,.16));
-      /* The lower inset band and bottom border make the physical side visible. */
+      /* 下辺の内側陰影で、透明キーの厚みを表現します。 */
       box-shadow: var(--key-shadow), inset 0 1px 1px rgba(255,255,255,.76), inset 0 calc(var(--key-side-height) * -1) var(--key-side-height) var(--key-side-color);
       backdrop-filter: blur(var(--key-blur)) saturate(1.35) var(--key-refraction);
       -webkit-backdrop-filter: blur(var(--key-blur)) saturate(1.35) var(--key-refraction);
       transition: transform .14s ease, background .14s ease, box-shadow .14s ease, border-color .14s ease;
     }
-    .button:hover .cap { background: linear-gradient(145deg, rgba(255,255,255,.54), var(--key-background-hover)); border-color: #fff; }
+    /* 背面ディスプレイは使わず、キーキャップ1層だけを表示します。 */
+    .display { display: none; }
+    .cap { position: relative; }
+    .button:hover .cap { background: linear-gradient(145deg, rgba(255,255,255,.28), rgba(255,255,255,.08)); border-color: #fff; }
     .button:active .cap { transform: translateY(var(--key-side-height)) scale(.975); box-shadow: var(--key-shadow-pressed); }
     .button:focus-visible .cap { outline: 3px solid rgba(86,189,233,.38); outline-offset: 4px; }
     .icon { position: relative; z-index: 2; color: #3f7189; font-size: clamp(1.25rem, 5vw, 2.15rem); line-height: 1; }
