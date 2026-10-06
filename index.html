@@ -19,8 +19,10 @@
       --muted-text: #111827;
       /* フォントと文字サイズはここでまとめて変更できます。 */
       --font-ui: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      --font-size-value: clamp(.75rem, 11cqw, 1.1rem);
-      --font-size-weather-date: clamp(.55rem, 9cqw, .78rem);
+      --font-size-clock: clamp(.75rem, 11cqw, 1.1rem); /* 時計の文字 */
+      --font-size-weather-date: clamp(.55rem, 9cqw, .78rem); /* 天気の日付 */
+      --icon-size: clamp(1.35rem, 34cqw, 4.2rem); /* 通常アイコン */
+      --weather-icon-size: clamp(1.7rem, 34cqw, 4.2rem); /* 天気アイコン */
       --accent-color: #56bde9;
       /* 背面ディスプレイの調整はこの2つだけで行えます。 */
       --display-enabled: 0; /* 1 = 表示、0 = 非表示 */
@@ -159,12 +161,12 @@
     /* 画像や文字ではなく、常にボタン本体がドラッグを受け取ります。 */
     .cap, .cap * { pointer-events: none; }
     .icon { position: relative; z-index: 2; color: #111827; font-size: clamp(1.25rem, 5vw, 2.15rem); line-height: 1; }
-    .icon-image { position: relative; z-index: 2; display: block; width: clamp(1.35rem, 6vw, 4.2rem); height: clamp(1.35rem, 6vw, 4.2rem); object-fit: contain; opacity: .88; width: clamp(1.35rem, 34cqw, 4.2rem); height: clamp(1.35rem, 34cqw, 4.2rem); }
+    .icon-image { position: relative; z-index: 2; display: block; width: var(--icon-size); height: var(--icon-size); object-fit: contain; opacity: .88; }
     /* Stream Deck風に、通常ボタンのラベルは表示しません。 */
     .label { display: none; }
-    .value { position: relative; z-index: 2; color: #111827; font-size: var(--font-size-value); font-weight: 650; font-variant-numeric: tabular-nums; }
+    .value { position: relative; z-index: 2; color: #111827; font-size: var(--font-size-clock); font-weight: 650; font-variant-numeric: tabular-nums; }
     .weather-date { position: relative; z-index: 2; color: #111827; font-size: var(--font-size-weather-date); font-weight: 650; }
-    .weather-icon { position: relative; z-index: 2; width: clamp(1.7rem, 34cqw, 4.2rem); height: clamp(1.7rem, 34cqw, 4.2rem); object-fit: contain; }
+    .weather-icon { position: relative; z-index: 2; width: var(--weather-icon-size); height: var(--weather-icon-size); object-fit: contain; }
     .empty .display { background: rgb(255 255 255 / var(--display-opacity)); box-shadow: inset 0 0 14px rgb(255 255 255 / var(--display-opacity)); }
     .empty .cap { background: rgba(255,255,255,.12); opacity: .82; }
 
@@ -208,7 +210,7 @@
     const editMode = document.querySelector('#edit-mode');
     const updateClock = () => {
       const now = new Date();
-      clock.textContent = new Intl.DateTimeFormat('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(now);
+      clock.textContent = new Intl.DateTimeFormat('ja-JP', { hour: '2-digit', minute: '2-digit' }).format(now);
       weatherDate.textContent = new Intl.DateTimeFormat('ja-JP', { month: 'numeric', day: 'numeric', weekday: 'short' }).format(now);
     };
     updateClock();
