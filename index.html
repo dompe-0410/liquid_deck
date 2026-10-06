@@ -81,15 +81,19 @@
     body.dark-mode::before { opacity: .24; }
     body.dark-mode::after { opacity: .18; }
     /* ダークモードでは黒系アイコンだけを明るくして見やすくします。カラーアイコン・天気アイコンは変更しません。 */
-    body.dark-mode .icon-image[alt="Twitch"],
-    body.dark-mode .icon-image[alt="Discord"],
+    body.dark-mode .icon-image[alt="サイト"],
     body.dark-mode .icon-image[alt="X"],
-    body.dark-mode .icon-image[alt="YouTube"],
     body.dark-mode .icon-image[alt="QR作成"],
     body.dark-mode .icon-image[alt="カレンダー"],
     body.dark-mode .icon-image[alt="速度テスト"],
     body.dark-mode .icon-image[alt="後で見る"],
     body.dark-mode .icon-image[alt="設定"] { filter: invert(1) brightness(.92); }
+    body.dark-mode .clock-value,
+    body.dark-mode .weather-date,
+    body.dark-mode .weather-temp,
+    body.dark-mode .calendar-date,
+    body.dark-mode .calendar-time,
+    body.dark-mode .calendar-event { color: #f3f4f6; }
 
     body::before, body::after {
       position: fixed;
