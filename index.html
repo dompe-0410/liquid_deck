@@ -25,17 +25,17 @@
       /* フォントと文字サイズはここでまとめて変更できます。 */
       --font-ui: "Noto Sans Mono CJK JP", "Noto Sans Mono", monospace;
       --font-size-clock: clamp(.7rem, 22cqw, 1.7rem); /* 時計の文字 */
-      --font-size-weather-date: clamp(.55rem, 9cqw, .78rem); /* 天気の日付 */
+      --font-size-weather-date: clamp(.6rem, 11cqw, 1.0rem); /* 天気の日付 */
       /* 以下の文字サイズを変えると、画面の各文字を個別に調整できます。 */
-      --font-size-title: clamp(1.35rem, 4vw, 2.3rem); /* Liquid Deck */
+      --font-size-title: clamp(1.2rem, 6vw, 1.7rem); /* Liquid Deck */
       --font-size-edit: .75rem; /* edit */
       --font-size-button: clamp(1.25rem, 5vw, 2.15rem); /* ボタン内の文字・アイコン基準 */
-      --font-size-button-info: clamp(.55rem, 9cqw, .82rem); /* 天気・カレンダーの補助文字 */
+      --font-size-button-info: clamp(.45rem, 10cqw, 1.4rem); /* 天気・カレンダーの補助文字 */
       --font-size-dialog: .85rem; /* ダイアログ本文・入力欄 */
       --font-size-dialog-heading: 1rem; /* ダイアログ見出し */
       --font-size-dialog-note: .72rem; /* ダイアログ補足説明 */
       --icon-size: clamp(1.35rem, 34cqw, 4.2rem); /* 通常アイコン */
-      --weather-icon-size: clamp(1.7rem, 34cqw, 4.2rem); /* 天気アイコン */
+      --weather-icon-size: clamp(1.3rem, 34cqw, 4.2rem); /* 天気アイコン */
       --accent-color: #56bde9;
       /* 背面ディスプレイの調整はこの2つだけで行えます。 */
       --display-enabled: 0; /* 1 = 表示、0 = 非表示 */
@@ -52,7 +52,7 @@
       --key-shadow-pressed: 0 5px 9px rgba(89, 119, 142, .12), inset 0 3px 9px rgba(117, 166, 188, .12);
       --key-side-height: 0px; /* キーキャップ下側の見える厚み */
       /* ダイアログの透明度。0に近いほど透明、1に近いほど不透明です。 */
-      --dialog-opacity: .24;
+      --dialog-opacity: .3;
       --key-side-color: rgba(111, 157, 177, .34);
       --key-tint: rgba(255, 255, 255, .04);
       --key-refraction: url(#liquid-glass-filter);
@@ -187,12 +187,13 @@
     .weather-date { position: relative; z-index: 2; color: #111827; font-size: var(--font-size-weather-date); font-weight: 650; }
     .weather-temp { position: relative; z-index: 2; color: #111827; font-size: var(--font-size-button-info); font-weight: 650; }
     .weather-icon { position: relative; z-index: 2; width: var(--weather-icon-size); height: var(--weather-icon-size); object-fit: contain; }
-    .weather-cap { display: flex; flex-direction: column; justify-content: center; align-items: center; }
+    .weather-cap { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 1px; }
+    .weather-cap .weather-icon { transform: translateY(4px); }
     /* ダイアログ表示中もホーム背景を暗くしません。ぼかしもほぼ無しです。 */
     .qr-modal, .weather-modal, .speed-modal, .settings-modal, .link-modal { background: transparent; backdrop-filter: none; }
     .qr-modal { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; padding: 24px; }
     .qr-modal.open { display: grid; }
-    .qr-card, .weather-card, .speed-card, .settings-card, .link-card { position: relative; font-size: var(--font-size-dialog); border: 1px solid rgba(255,255,255,.62); background: linear-gradient(145deg, rgb(255 255 255 / var(--dialog-opacity)), rgb(255 255 255 / calc(var(--dialog-opacity) * .55))); box-shadow: 0 18px 50px rgba(63,78,102,.18), inset 0 1px 0 rgba(255,255,255,.55); backdrop-filter: blur(14px) saturate(115%); }
+    .qr-card, .weather-card, .speed-card, .settings-card, .link-card { position: relative; font-size: var(--font-size-dialog); border: 1px solid rgba(255,255,255,.62); background: linear-gradient(145deg, rgb(255 255 255 / var(--dialog-opacity)), rgb(255 255 255 / calc(var(--dialog-opacity) * .55))); box-shadow: 0 18px 50px rgba(63,78,102,.18), inset 0 1px 0 rgba(255, 255, 255, 0.55); backdrop-filter: blur(5px) saturate(115%); }
     .qr-card { width: min(92vw, 380px); max-height: 88svh; overflow: auto; padding: 30px; border-radius: 20px; color: #111827; }
     .weather-close, .speed-close, .settings-close, .link-close { position: absolute; top: 18px; right: 18px; float: none; }
     .qr-card h2 { margin: 0 0 22px; font-size: var(--font-size-dialog-heading); text-align: center; }
