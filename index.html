@@ -214,6 +214,21 @@
     .setting-wide input { width: 100%; padding: 7px; border: 1px solid rgba(17,24,39,.2); border-radius: 8px; background: rgba(255,255,255,.7); color: #111827; font: inherit; }
     .setting-wide button { padding: 7px 9px; border: 1px solid rgba(17,24,39,.2); border-radius: 8px; background: rgba(255,255,255,.7); color: #111827; cursor: pointer; font: inherit; }
     .setting-note { color: #4b5563; font-size: .72rem; }
+    .link-modal { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; padding: 20px; background: rgba(17,24,39,.24); backdrop-filter: blur(8px); }
+    .link-modal.open { display: grid; }
+    .link-card { width: min(92vw, 440px); max-height: 88svh; overflow: auto; padding: 22px; border: 1px solid rgba(255,255,255,.7); border-radius: 16px; background: rgba(255,255,255,.86); color: #111827; box-shadow: 0 18px 50px rgba(0,0,0,.2); }
+    .link-card h2 { margin: 0 0 14px; font-size: 1rem; }
+    .link-close { float: right; padding: 5px 9px; border: 1px solid rgba(17,24,39,.18); border-radius: 8px; background: transparent; cursor: pointer; }
+    .link-form { display: grid; gap: 8px; padding-bottom: 14px; border-bottom: 1px solid rgba(17,24,39,.1); }
+    .link-form input { width: 100%; padding: 8px; border: 1px solid rgba(17,24,39,.2); border-radius: 8px; background: rgba(255,255,255,.7); color: #111827; font: inherit; }
+    .link-form button { padding: 8px; border: 1px solid rgba(17,24,39,.2); border-radius: 8px; background: rgba(255,255,255,.7); cursor: pointer; font: inherit; }
+    .link-list { display: grid; gap: 8px; margin-top: 14px; }
+    .saved-link { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 9px; padding: 8px; border: 1px solid rgba(17,24,39,.12); border-radius: 9px; background: rgba(255,255,255,.56); }
+    .saved-link img { width: 28px; height: 28px; object-fit: contain; }
+    .saved-link a { min-width: 0; overflow: hidden; color: #111827; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+    .saved-link small { display: block; overflow: hidden; color: #6b7280; text-overflow: ellipsis; white-space: nowrap; }
+    .saved-link button { padding: 4px 7px; border: 1px solid rgba(17,24,39,.16); border-radius: 7px; background: transparent; cursor: pointer; }
+    .link-empty { color: #6b7280; font-size: .85rem; }
     .empty .display { background: rgb(255 255 255 / var(--display-opacity)); box-shadow: inset 0 0 14px rgb(255 255 255 / var(--display-opacity)); }
     .empty .cap { background: rgba(255,255,255,.12); opacity: .82; }
 
@@ -235,10 +250,10 @@
       <button class="button" aria-label="時計"><span class="display"></span><span class="cap"><span class="value" id="clock">--:--</span></span></button>
       <button class="button" data-action="weather" aria-label="天気"><span class="display"></span><span class="cap weather-cap"><img class="weather-icon" id="weather-icon" src="./assets/weather/clear-day.png" alt="天気"><span class="weather-date" id="weather-date">--/--</span><span class="weather-temp" id="weather-temp">--℃</span></span></button>
       <button class="button" data-action="qr" aria-label="QR作成"><span class="display"></span><span class="cap"><img class="icon-image" src="./QR.png" alt="QR作成"><span class="label">QR作成</span></span></button>
-      <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./リンク.png" alt="サイト"><span class="label">サイト</span></span></button>
+      <button class="button" data-action="links" aria-label="よく使うサイト"><span class="display"></span><span class="cap"><img class="icon-image" src="./リンク.png" alt="サイト"><span class="label">サイト</span></span></button>
       <button class="button" aria-label="カレンダー"><span class="display"></span><span class="cap"><img class="icon-image" src="./カレンダー.png" alt="カレンダー"></span></button>
       <button class="button" data-action="speed" aria-label="速度テスト"><span class="display"></span><span class="cap"><img class="icon-image" src="./スピード.png" alt="速度テスト"><span class="label">速度テスト</span></span></button>
-      <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./後で見る.png" alt="後で見る"><span class="label">後で見る</span></span></button>
+      <button class="button" data-action="later" aria-label="後で見る"><span class="display"></span><span class="cap"><img class="icon-image" src="./後で見る.png" alt="後で見る"><span class="label">後で見る</span></span></button>
       <button class="button" data-action="settings" aria-label="設定"><span class="display"></span><span class="cap"><img class="icon-image" src="./設定.png" alt="設定"><span class="label">設定</span></span></button>
       <button class="button empty" aria-label="未使用"><span class="display"></span><span class="cap"></span></button>
       <button class="button empty" aria-label="未使用"><span class="display"></span><span class="cap"></span></button>
@@ -284,6 +299,22 @@
       <textarea class="qr-input" id="qr-input" placeholder="URLや文字を入力"></textarea>
       <div class="qr-actions"><button type="button" id="qr-close">閉じる</button><button type="button" id="qr-generate">生成</button></div>
       <div id="qr-output"></div>
+    </section>
+  </div>
+  <div class="link-modal" id="links-modal" aria-hidden="true">
+    <section class="link-card" role="dialog" aria-modal="true" aria-labelledby="links-title">
+      <button class="link-close" id="links-close" type="button">閉じる</button>
+      <h2 id="links-title">よく使うサイト</h2>
+      <div class="link-form"><input id="links-title-input" type="text" placeholder="サイト名"><input id="links-url-input" type="url" placeholder="https://example.com"><button id="links-add" type="button">追加</button></div>
+      <div class="link-list" id="links-list"></div>
+    </section>
+  </div>
+  <div class="link-modal" id="later-modal" aria-hidden="true">
+    <section class="link-card" role="dialog" aria-modal="true" aria-labelledby="later-title">
+      <button class="link-close" id="later-close" type="button">閉じる</button>
+      <h2 id="later-title">後で見る</h2>
+      <div class="link-form"><input id="later-title-input" type="text" placeholder="タイトル"><input id="later-url-input" type="url" placeholder="https://example.com"><button id="later-add" type="button">追加</button></div>
+      <div class="link-list" id="later-list"></div>
     </section>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
@@ -342,6 +373,8 @@
     let weatherLocation = JSON.parse(localStorage.getItem('liquid-deck-weather-location') || 'null') || defaultWeatherLocation;
     let currentUser = null;
     let premiumLinks = JSON.parse(localStorage.getItem('liquid-deck-premium-links') || '{}');
+    let savedLinks = JSON.parse(localStorage.getItem('liquid-deck-saved-links') || '[]');
+    let laterLinks = JSON.parse(localStorage.getItem('liquid-deck-later-links') || '[]');
     let syncedLayoutOrder = null;
     const applyLayoutOrder = (order) => {
       if (!Array.isArray(order)) return;
@@ -362,7 +395,7 @@
       const { data: { session } } = await supabaseClient.auth.getSession();
       updateAuthButton(session);
       if (!currentUser) return;
-      const { data } = await supabaseClient.from('user_settings').select('weather_location, layout_order, premium_links').eq('user_id', currentUser.id).maybeSingle();
+      const { data } = await supabaseClient.from('user_settings').select('weather_location, layout_order, premium_links, saved_links, later_links').eq('user_id', currentUser.id).maybeSingle();
       if (!data) {
         await syncUserSettings();
         return;
@@ -374,10 +407,13 @@
       syncedLayoutOrder = data?.layout_order;
       applyLayoutOrder(syncedLayoutOrder);
       if (data?.premium_links) { premiumLinks = data.premium_links; localStorage.setItem('liquid-deck-premium-links', JSON.stringify(premiumLinks)); applyPremiumLinks(); }
+      if (Array.isArray(data?.saved_links)) { savedLinks = data.saved_links; localStorage.setItem('liquid-deck-saved-links', JSON.stringify(savedLinks)); renderLinkList('saved'); }
+      if (Array.isArray(data?.later_links)) { laterLinks = data.later_links; localStorage.setItem('liquid-deck-later-links', JSON.stringify(laterLinks)); renderLinkList('later'); }
     };
     const syncUserSettings = async () => {
       if (!currentUser || !supabaseClient) return;
-      await supabaseClient.from('user_settings').upsert({ user_id: currentUser.id, weather_location: weatherLocation, layout_order: [...grid.children].map((item) => item.dataset.slot), premium_links: premiumLinks, updated_at: new Date().toISOString() });
+      const { error } = await supabaseClient.from('user_settings').upsert({ user_id: currentUser.id, weather_location: weatherLocation, layout_order: [...grid.children].map((item) => item.dataset.slot), premium_links: premiumLinks, saved_links: savedLinks, later_links: laterLinks, updated_at: new Date().toISOString() });
+      if (error) console.warn('user_settings同期に失敗しました。SQLの列追加を確認してください。', error);
     };
     authButton.addEventListener('click', async () => {
       if (!supabaseClient) return;
@@ -489,6 +525,33 @@
     const settingsAuth = document.querySelector('#settings-auth');
     const clockFormatSelect = document.querySelector('#clock-format');
     const weatherIntervalSelect = document.querySelector('#weather-interval');
+    // よく使うサイト・後で見るの一覧。通常リンクは端末保存、ログイン中はSupabaseにも同期します。
+    const linkModalInfo = {
+      saved: { modal: document.querySelector('#links-modal'), list: document.querySelector('#links-list'), title: document.querySelector('#links-title-input'), url: document.querySelector('#links-url-input') },
+      later: { modal: document.querySelector('#later-modal'), list: document.querySelector('#later-list'), title: document.querySelector('#later-title-input'), url: document.querySelector('#later-url-input') }
+    };
+    const faviconFor = (url) => { try { return `https://icons.duckduckgo.com/ip3/${new URL(url).hostname}.ico`; } catch { return './リンク.png'; } };
+    const renderLinkList = (kind) => {
+      const info = linkModalInfo[kind]; const items = kind === 'saved' ? savedLinks : laterLinks; info.list.replaceChildren();
+      if (!items.length) { info.list.innerHTML = '<span class="link-empty">まだ登録されていません。</span>'; return; }
+      items.forEach((item, index) => {
+        const row = document.createElement('div'); row.className = 'saved-link';
+        const image = document.createElement('img'); image.src = item.iconUrl || faviconFor(item.url); image.alt = '';
+        const details = document.createElement('div'); const link = document.createElement('a'); link.href = item.url; link.target = '_blank'; link.rel = 'noopener'; link.textContent = item.title || item.url; const small = document.createElement('small'); small.textContent = item.url; details.append(link, small);
+        const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '削除'; remove.addEventListener('click', () => { items.splice(index, 1); localStorage.setItem(kind === 'saved' ? 'liquid-deck-saved-links' : 'liquid-deck-later-links', JSON.stringify(items)); renderLinkList(kind); syncUserSettings(); });
+        row.append(image, details, remove); info.list.append(row);
+      });
+    };
+    const openLinkModal = (kind) => { const info = linkModalInfo[kind]; info.modal.classList.add('open'); info.modal.setAttribute('aria-hidden', 'false'); renderLinkList(kind); info.title.focus(); };
+    const closeLinkModal = (kind) => { const modal = linkModalInfo[kind].modal; modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); };
+    ['saved', 'later'].forEach((kind) => {
+      const info = linkModalInfo[kind]; const action = kind === 'saved' ? 'links' : 'later'; const prefix = kind === 'saved' ? 'links' : 'later';
+      document.querySelector(`[data-action="${action}"]`).addEventListener('click', () => openLinkModal(kind)); document.querySelector(`#${prefix}-close`).addEventListener('click', () => closeLinkModal(kind));
+      info.modal.addEventListener('click', (event) => { if (event.target === info.modal) closeLinkModal(kind); });
+      document.querySelector(`#${prefix}-add`).addEventListener('click', () => { const title = info.title.value.trim(); const url = info.url.value.trim(); try { new URL(url); } catch { info.url.focus(); return; } const item = { title: title || url, url, iconUrl: faviconFor(url) }; const items = kind === 'saved' ? savedLinks : laterLinks; items.push(item); localStorage.setItem(kind === 'saved' ? 'liquid-deck-saved-links' : 'liquid-deck-later-links', JSON.stringify(items)); info.title.value = ''; info.url.value = ''; renderLinkList(kind); syncUserSettings(); });
+    });
+    renderLinkList('saved'); renderLinkList('later');
+
     const openSettings = () => {
       settingsAuth.textContent = currentUser ? 'logout' : 'login';
       clockFormatSelect.value = clockFormat;
@@ -515,12 +578,17 @@
         if (currentUser && supabaseClient) {
           const path = `${currentUser.id}/${slot}-${Date.now()}.${file.name.split('.').pop()}`;
           const upload = await supabaseClient.storage.from('custom-icons').upload(path, file, { upsert: true });
-          if (upload.error) { alert('画像を保存できませんでした。'); return; }
-          iconUrl = supabaseClient.storage.from('custom-icons').getPublicUrl(path).data.publicUrl;
+          if (!upload.error) {
+            iconUrl = supabaseClient.storage.from('custom-icons').getPublicUrl(path).data.publicUrl;
+          } else {
+            // Storageのバケットやポリシー未設定でも、端末保存なら登録を完了させます。
+            console.warn('カスタム画像のStorage保存に失敗したため、端末保存へ切り替えます。', upload.error);
+          }
         } else {
           iconUrl = await new Promise((resolve) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.readAsDataURL(file); });
         }
       }
+      if (!iconUrl) iconUrl = faviconFor(url);
       premiumLinks[slot] = { title: title || url, url, iconUrl };
       localStorage.setItem('liquid-deck-premium-links', JSON.stringify(premiumLinks));
       applyPremiumLinks();
