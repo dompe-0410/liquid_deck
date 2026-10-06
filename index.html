@@ -84,6 +84,8 @@
     .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--grid-gap); }
     .button {
       position: relative;
+      /* ボタン自身の幅を、内部サイズ計算の基準にします。 */
+      container-type: inline-size;
       /* どの画面幅でも必ず正方形を維持します。 */
       aspect-ratio: 1 / 1;
       min-width: 0;
@@ -135,9 +137,9 @@
     .button:active .cap { transform: translateY(var(--key-side-height)) scale(.975); box-shadow: var(--key-shadow-pressed); }
     .button:focus-visible .cap { outline: 3px solid rgba(86,189,233,.38); outline-offset: 4px; }
     .icon { position: relative; z-index: 2; color: #3f7189; font-size: clamp(1.25rem, 5vw, 2.15rem); line-height: 1; }
-    .icon-image { position: relative; z-index: 2; display: block; width: clamp(2.1rem, 15vw, 4.8rem); height: clamp(2.1rem, 15vw, 4.8rem); object-fit: contain; opacity: .88; }
-    .label { position: relative; z-index: 2; max-width: 100%; overflow: hidden; color: #476a7c; font-size: clamp(.62rem, 2vw, .82rem); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
-    .value { position: relative; z-index: 2; color: var(--accent-color); font-size: clamp(.62rem, 2.2vw, 1rem); font-variant-numeric: tabular-nums; }
+    .icon-image { position: relative; z-index: 2; display: block; width: clamp(1.35rem, 6vw, 4.2rem); height: clamp(1.35rem, 6vw, 4.2rem); object-fit: contain; opacity: .88; width: clamp(1.35rem, 34cqw, 4.2rem); height: clamp(1.35rem, 34cqw, 4.2rem); }
+    .label { position: relative; z-index: 2; max-width: 100%; overflow: hidden; color: #476a7c; font-size: clamp(.55rem, 1.8vw, .82rem); font-size: clamp(.55rem, 10cqw, .82rem); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+    .value { position: relative; z-index: 2; color: var(--accent-color); font-size: clamp(.55rem, 2vw, 1rem); font-size: clamp(.55rem, 11cqw, 1rem); font-variant-numeric: tabular-nums; }
     .empty .display { background: rgba(255,255,255,.25); box-shadow: inset 0 0 14px rgba(255,255,255,.48); }
     .empty .cap { background: rgba(255,255,255,.12); opacity: .82; }
 
