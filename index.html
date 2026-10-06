@@ -386,6 +386,7 @@
     let savedLinks = JSON.parse(localStorage.getItem('liquid-deck-saved-links') || '[]');
     let laterLinks = JSON.parse(localStorage.getItem('liquid-deck-later-links') || '[]');
     let calendarUrl = localStorage.getItem('liquid-deck-calendar-url') || '';
+    let calendarCache = JSON.parse(localStorage.getItem('liquid-deck-calendar-cache') || 'null');
     let syncedLayoutOrder = null;
     const applyLayoutOrder = (order) => {
       if (!Array.isArray(order)) return;
@@ -585,6 +586,9 @@
     };
     const loadCalendarEvent = async () => {
       if (!calendarUrl) { calendarDate.textContent = '--/--'; calendarTime.textContent = '--:--'; calendarEvent.textContent = 'カレンダー未設定'; return; }
+      if (calendarCache?.url === calendarUrl && Date.now() - calendarCache.savedAt < 10 * 60 * 1000) {
+        calendarDate.textContent = calendarCache.date; calendarTime.textContent = calendarCache.time; calendarEvent.textContent = calendarCache.title; return;
+      }
       try {
         const response = await fetch(calendarProxyUrl, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: 'sb_publishable_TWHw1Fc_r1OLBNUW47O0-w_fCxcC68S', Authorization: 'Bearer sb_publishable_TWHw1Fc_r1OLBNUW47O0-w_fCxcC68S' }, body: JSON.stringify({ url: calendarUrl }), cache: 'no-store' });
         if (!response.ok) throw new Error(`calendar proxy returned ${response.status}`);
@@ -592,8 +596,10 @@
         calendarDate.textContent = new Intl.DateTimeFormat('ja-JP', { month: 'numeric', day: 'numeric', weekday: 'short' }).format(event.date);
         calendarTime.textContent = new Intl.DateTimeFormat('ja-JP', { hour: '2-digit', minute: '2-digit' }).format(event.date);
         calendarEvent.textContent = event.title;
+        calendarCache = { url: calendarUrl, date: calendarDate.textContent, time: calendarTime.textContent, title: calendarEvent.textContent, savedAt: Date.now() };
+        localStorage.setItem('liquid-deck-calendar-cache', JSON.stringify(calendarCache));
         calendarStatus.textContent = '';
-      } catch (error) { console.error('カレンダー取得エラー:', error); calendarEvent.textContent = '予定を取得できません'; calendarStatus.textContent = `取得失敗（${error.message}）。URL・Function設定を確認してください。`; }
+      } catch (error) { console.error('カレンダー取得エラー:', error); if (calendarCache?.url === calendarUrl) { calendarDate.textContent = calendarCache.date; calendarTime.textContent = calendarCache.time; calendarEvent.textContent = calendarCache.title; } else calendarEvent.textContent = '予定を取得できません'; calendarStatus.textContent = `取得失敗（${error.message}）。しばらく待って再試行してください。`; }
     };
     document.querySelector('[data-action="calendar"]').addEventListener('click', () => { calendarInput.value = calendarUrl; calendarModal.classList.add('open'); calendarModal.setAttribute('aria-hidden', 'false'); calendarInput.focus(); });
     const closeCalendar = () => { calendarModal.classList.remove('open'); calendarModal.setAttribute('aria-hidden', 'true'); };
