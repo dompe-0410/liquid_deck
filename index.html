@@ -232,7 +232,7 @@
   <div class="weather-modal" id="weather-modal" aria-hidden="true">
     <section class="weather-card" role="dialog" aria-modal="true" aria-labelledby="weather-title">
       <button class="weather-close" id="weather-close" type="button">閉じる</button>
-      <h2 id="weather-title">地域を選択</h2>
+      <h2 id="weather-title">地域を選択（現在：東京都）</h2>
       <input class="weather-input" id="weather-input" type="search" placeholder="例：東京都、大阪市">
       <div class="weather-results" id="weather-results"></div>
     </section>
@@ -288,6 +288,7 @@
     const weatherModal = document.querySelector('#weather-modal');
     const weatherInput = document.querySelector('#weather-input');
     const weatherResults = document.querySelector('#weather-results');
+    const weatherTitle = document.querySelector('#weather-title');
     const authButton = document.querySelector('#auth-button');
     const supabaseClient = window.supabase?.createClient(
       'https://mmxyzwydhewswlfpragp.supabase.co',
@@ -296,6 +297,15 @@
     const defaultWeatherLocation = { name: '東京都', latitude: 35.6762, longitude: 139.6503 };
     let weatherLocation = JSON.parse(localStorage.getItem('liquid-deck-weather-location') || 'null') || defaultWeatherLocation;
     let currentUser = null;
+    let syncedLayoutOrder = null;
+    const applyLayoutOrder = (order) => {
+      if (!Array.isArray(order)) return;
+      const items = [...grid.children];
+      order.forEach((slot) => {
+        const button = items.find((item) => item.dataset.slot === slot);
+        if (button) grid.appendChild(button);
+      });
+    };
     const hostedAppUrl = 'https://dompe-0410.github.io/liquid_deck/';
     const updateAuthButton = (session) => {
       currentUser = session?.user || null;
@@ -307,15 +317,17 @@
       const { data: { session } } = await supabaseClient.auth.getSession();
       updateAuthButton(session);
       if (!currentUser) return;
-      const { data } = await supabaseClient.from('user_settings').select('weather_location').eq('user_id', currentUser.id).maybeSingle();
+      const { data } = await supabaseClient.from('user_settings').select('weather_location, layout_order').eq('user_id', currentUser.id).maybeSingle();
       if (data?.weather_location) {
         weatherLocation = data.weather_location;
         localStorage.setItem('liquid-deck-weather-location', JSON.stringify(weatherLocation));
       }
+      syncedLayoutOrder = data?.layout_order;
+      applyLayoutOrder(syncedLayoutOrder);
     };
-    const syncWeatherLocation = async () => {
+    const syncUserSettings = async () => {
       if (!currentUser || !supabaseClient) return;
-      await supabaseClient.from('user_settings').upsert({ user_id: currentUser.id, weather_location: weatherLocation, updated_at: new Date().toISOString() });
+      await supabaseClient.from('user_settings').upsert({ user_id: currentUser.id, weather_location: weatherLocation, layout_order: [...grid.children].map((item) => item.dataset.slot), updated_at: new Date().toISOString() });
     };
     authButton.addEventListener('click', async () => {
       if (!supabaseClient) return;
@@ -355,7 +367,7 @@
         weatherTemp.textContent = '--℃';
       }
     };
-    const openWeather = () => { weatherModal.classList.add('open'); weatherModal.setAttribute('aria-hidden', 'false'); weatherInput.focus(); };
+    const openWeather = () => { weatherTitle.textContent = `地域を選択（現在：${weatherLocation.name}）`; weatherModal.classList.add('open'); weatherModal.setAttribute('aria-hidden', 'false'); weatherInput.focus(); };
     const closeWeather = () => { weatherModal.classList.remove('open'); weatherModal.setAttribute('aria-hidden', 'true'); };
     document.querySelector('[data-action="weather"]').addEventListener('click', openWeather);
     document.querySelector('#weather-close').addEventListener('click', closeWeather);
@@ -372,7 +384,7 @@
         button.addEventListener('click', () => {
           weatherLocation = { name: place.name, latitude: place.latitude, longitude: place.longitude };
           localStorage.setItem('liquid-deck-weather-location', JSON.stringify(weatherLocation));
-          syncWeatherLocation();
+          syncUserSettings();
           closeWeather();
           loadWeather();
         });
@@ -387,12 +399,7 @@
     const buttons = [...grid.querySelectorAll('.button')];
     buttons.forEach((button, index) => { button.dataset.slot = String(index); });
     const savedOrder = JSON.parse(localStorage.getItem('liquid-deck-order') || 'null');
-    if (Array.isArray(savedOrder)) {
-      savedOrder.forEach((slot) => {
-        const button = buttons.find((item) => item.dataset.slot === slot);
-        if (button) grid.appendChild(button);
-      });
-    }
+    applyLayoutOrder(syncedLayoutOrder || savedOrder);
 
     let draggedButton = null;
     let dragStartX = 0;
@@ -430,6 +437,7 @@
         grid.replaceChild(draggedButton, target);
         grid.replaceChild(target, placeholder);
         localStorage.setItem('liquid-deck-order', JSON.stringify([...grid.children].map((item) => item.dataset.slot)));
+        syncUserSettings();
       }
       draggedButton.classList.remove('dragging');
       draggedButton.style.transform = '';
