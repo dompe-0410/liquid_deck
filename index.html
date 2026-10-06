@@ -318,6 +318,10 @@
       updateAuthButton(session);
       if (!currentUser) return;
       const { data } = await supabaseClient.from('user_settings').select('weather_location, layout_order').eq('user_id', currentUser.id).maybeSingle();
+      if (!data) {
+        await syncUserSettings();
+        return;
+      }
       if (data?.weather_location) {
         weatherLocation = data.weather_location;
         localStorage.setItem('liquid-deck-weather-location', JSON.stringify(weatherLocation));
@@ -334,8 +338,11 @@
       if (currentUser) { await supabaseClient.auth.signOut(); currentUser = null; authButton.textContent = 'login'; return; }
       await supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: hostedAppUrl } });
     });
-    supabaseClient?.auth.onAuthStateChange((_event, session) => updateAuthButton(session));
-    loadSyncedWeatherLocation().then(() => loadWeather());
+    // 認証状態の変化は、画面初期化後に設定を読み直します。
+    supabaseClient?.auth.onAuthStateChange((_event, session) => {
+      updateAuthButton(session);
+      if (session) setTimeout(() => loadSyncedWeatherLocation().then(() => loadWeather()), 0);
+    });
     const weatherIcons = {
       clearDay: './assets/weather/clear-day.png', clearNight: './assets/weather/clear-night.png', partlyCloudy: './assets/weather/partly-cloudy.png',
       cloudy: './assets/weather/cloudy.png', fog: './assets/weather/fog.png', lightRain: './assets/weather/light-rain.png', rain: './assets/weather/rain.png', heavyRain: './assets/weather/heavy-rain.png',
@@ -452,6 +459,8 @@
     };
     grid.addEventListener('pointercancel', cancelDrag);
     grid.addEventListener('lostpointercapture', cancelDrag);
+    // 画面とローカル並び順の初期化が終わってからクラウド設定を読み込みます。
+    loadSyncedWeatherLocation().then(() => loadWeather());
   </script>
 </body>
 </html>
