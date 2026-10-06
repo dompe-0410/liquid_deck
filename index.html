@@ -223,10 +223,11 @@
     .link-form input { width: 100%; padding: 8px; border: 1px solid rgba(17,24,39,.2); border-radius: 8px; background: rgba(255,255,255,.7); color: #111827; font: inherit; }
     .link-form button { padding: 8px; border: 1px solid rgba(17,24,39,.2); border-radius: 8px; background: rgba(255,255,255,.7); cursor: pointer; font: inherit; }
     .link-list { display: grid; gap: 8px; margin-top: 14px; }
-    .saved-link { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 9px; padding: 8px; border: 1px solid rgba(17,24,39,.12); border-radius: 9px; background: rgba(255,255,255,.56); }
+    .saved-link { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: center; gap: 9px; min-width: 0; padding: 8px; border: 1px solid rgba(17,24,39,.12); border-radius: 9px; background: rgba(255,255,255,.56); }
     .saved-link img { width: 28px; height: 28px; object-fit: contain; }
-    .saved-link a { min-width: 0; overflow: hidden; color: #111827; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
-    .saved-link small { display: block; overflow: hidden; color: #6b7280; text-overflow: ellipsis; white-space: nowrap; }
+    .saved-link > div { min-width: 0; overflow: hidden; }
+    .saved-link a { display: block; min-width: 0; overflow: hidden; color: #111827; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+    .saved-link small { display: block; min-width: 0; overflow: hidden; color: #6b7280; text-overflow: ellipsis; white-space: nowrap; }
     .saved-link button { padding: 4px 7px; border: 1px solid rgba(17,24,39,.16); border-radius: 7px; background: transparent; cursor: pointer; }
     .link-empty { color: #6b7280; font-size: .85rem; }
     .empty .display { background: rgb(255 255 255 / var(--display-opacity)); box-shadow: inset 0 0 14px rgb(255 255 255 / var(--display-opacity)); }
