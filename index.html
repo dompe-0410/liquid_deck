@@ -586,14 +586,14 @@
     const loadCalendarEvent = async () => {
       if (!calendarUrl) { calendarDate.textContent = '--/--'; calendarTime.textContent = '--:--'; calendarEvent.textContent = 'カレンダー未設定'; return; }
       try {
-        const response = await fetch(calendarProxyUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: calendarUrl }), cache: 'no-store' });
-        if (!response.ok) throw new Error('calendar fetch failed');
+        const response = await fetch(calendarProxyUrl, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: 'sb_publishable_TWHw1Fc_r1OLBNUW47O0-w_fCxcC68S', Authorization: 'Bearer sb_publishable_TWHw1Fc_r1OLBNUW47O0-w_fCxcC68S' }, body: JSON.stringify({ url: calendarUrl }), cache: 'no-store' });
+        if (!response.ok) throw new Error(`calendar proxy returned ${response.status}`);
         const event = parseCalendar(await response.text()); if (!event) throw new Error('no event');
         calendarDate.textContent = new Intl.DateTimeFormat('ja-JP', { month: 'numeric', day: 'numeric', weekday: 'short' }).format(event.date);
         calendarTime.textContent = new Intl.DateTimeFormat('ja-JP', { hour: '2-digit', minute: '2-digit' }).format(event.date);
         calendarEvent.textContent = event.title;
         calendarStatus.textContent = '';
-      } catch { calendarEvent.textContent = '予定を取得できません'; calendarStatus.textContent = 'URLまたは公開設定を確認してください。'; }
+      } catch (error) { console.error('カレンダー取得エラー:', error); calendarEvent.textContent = '予定を取得できません'; calendarStatus.textContent = `取得失敗（${error.message}）。URL・Function設定を確認してください。`; }
     };
     document.querySelector('[data-action="calendar"]').addEventListener('click', () => { calendarInput.value = calendarUrl; calendarModal.classList.add('open'); calendarModal.setAttribute('aria-hidden', 'false'); calendarInput.focus(); });
     const closeCalendar = () => { calendarModal.classList.remove('open'); calendarModal.setAttribute('aria-hidden', 'true'); };
