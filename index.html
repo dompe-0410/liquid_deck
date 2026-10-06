@@ -280,7 +280,8 @@
     const weatherModal = document.querySelector('#weather-modal');
     const weatherInput = document.querySelector('#weather-input');
     const weatherResults = document.querySelector('#weather-results');
-    let weatherLocation = { name: '東京都', latitude: 35.6762, longitude: 139.6503 };
+    const defaultWeatherLocation = { name: '東京都', latitude: 35.6762, longitude: 139.6503 };
+    let weatherLocation = JSON.parse(localStorage.getItem('liquid-deck-weather-location') || 'null') || defaultWeatherLocation;
     const weatherIcons = {
       clearDay: './天気アイコン/晴れ・昼.png', clearNight: './天気アイコン/晴れ・よる.png', partlyCloudy: './天気アイコン/晴れときどき曇・昼兼夜.png',
       cloudy: './天気アイコン/曇り.png', fog: './天気アイコン/霧.png', lightRain: './天気アイコン/弱い雨・霧雨・にわか雨.png', rain: './天気アイコン/雨.png', heavyRain: './天気アイコン/強い雨.png',
@@ -326,7 +327,12 @@
         button.className = 'weather-result';
         button.type = 'button';
         button.textContent = [place.name, place.admin1, place.country].filter(Boolean).join(' / ');
-        button.addEventListener('click', () => { weatherLocation = { name: place.name, latitude: place.latitude, longitude: place.longitude }; closeWeather(); loadWeather(); });
+        button.addEventListener('click', () => {
+          weatherLocation = { name: place.name, latitude: place.latitude, longitude: place.longitude };
+          localStorage.setItem('liquid-deck-weather-location', JSON.stringify(weatherLocation));
+          closeWeather();
+          loadWeather();
+        });
         return button;
       }));
     });
