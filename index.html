@@ -95,6 +95,11 @@
     body.dark-mode .calendar-time,
     body.dark-mode .calendar-event { color: #f3f4f6; }
     body.dark-mode .weather-icon { filter: invert(1) brightness(.92); }
+    body.dark-mode h1,
+    body.dark-mode .edit-toggle { color: #f3f4f6; }
+    body.dark-mode .toggle-track { background: rgba(255,255,255,.28); }
+    body.dark-mode .edit-toggle input:checked + .toggle-track { background: #f3f4f6; }
+    body.dark-mode .edit-toggle input:checked + .toggle-track::after { background: #11141b; }
 
     body::before, body::after {
       position: fixed;
