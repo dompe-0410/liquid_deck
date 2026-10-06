@@ -254,11 +254,12 @@
         .map((element) => element.closest('.button'))
         .find((button) => button && button !== draggedButton && button.parentElement === grid);
       if (target && target !== draggedButton && target.parentElement === grid) {
-        const buttonsNow = [...grid.children];
-        const from = buttonsNow.indexOf(draggedButton);
-        const to = buttonsNow.indexOf(target);
-        if (from < to) grid.insertBefore(draggedButton, target.nextSibling);
-        else grid.insertBefore(draggedButton, target);
+        // ドロップ先と掴んだボタンの2つだけを直接交換します。
+        const placeholder = document.createElement('span');
+        placeholder.hidden = true;
+        grid.replaceChild(placeholder, draggedButton);
+        grid.replaceChild(draggedButton, target);
+        grid.replaceChild(target, placeholder);
         localStorage.setItem('liquid-deck-order', JSON.stringify([...grid.children].map((item) => item.dataset.slot)));
       }
       draggedButton.classList.remove('dragging');
