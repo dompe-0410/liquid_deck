@@ -15,12 +15,12 @@
       --page-glow-c: rgba(218, 238, 157, .46); /* 黄緑 */
       --page-glow-blur: 28px; /* 小さくすると光の形が見えやすくなります。 */
       --page-glow-c-size: 24vw;
-      --page-text: #274052;
-      --muted-text: #7890a0;
+      --page-text: #111827;
+      --muted-text: #111827;
       --accent-color: #56bde9;
       /* 背面ディスプレイの調整はこの2つだけで行えます。 */
-      --display-enabled: 1; /* 1 = 表示、0 = 非表示 */
-      --display-opacity: .42; /* 0.0〜1.0。小さいほど透明です。 */
+      --display-enabled: 0; /* 1 = 表示、0 = 非表示 */
+      --display-opacity: .04; /* 0.0〜1.0。小さいほど透明です。 */
       --display-color: rgb(232 247 255 / var(--display-opacity));
       --display-line: rgb(255 255 255 / var(--display-opacity));
       --key-background: rgba(255, 255, 255, .38);
@@ -50,7 +50,8 @@
       color: var(--page-text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       /* 追加された画像を画面全体の背景に使います。 */
-      background: var(--page-background) url('./o0800053415553884102.jpg') center / cover fixed;
+      /* 背景画像は使わず、下の光だけで明るい背景を作ります。 */
+      background: var(--page-background);
     }
 
     body::before, body::after {
@@ -81,7 +82,7 @@
 
     .deck { position: relative; z-index: 1; width: min(92vw, 760px); padding: clamp(16px, 4vw, 32px); }
     .deck-header { display: flex; align-items: end; justify-content: space-between; margin: 0 3px 22px; }
-    h1 { margin: 0; color: #31546a; font-size: clamp(1.35rem, 4vw, 2rem); font-weight: 650; letter-spacing: .06em; }
+    h1 { margin: 0; color: #111827; font-size: clamp(1.35rem, 4vw, 2rem); font-weight: 650; letter-spacing: .06em; }
     .status { color: var(--muted-text); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; }
 
     .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--grid-gap); }
@@ -140,10 +141,11 @@
     .button:hover .cap { background: linear-gradient(145deg, rgba(255,255,255,.28), rgba(255,255,255,.08)); border-color: #fff; }
     .button:active .cap { transform: translateY(var(--key-side-height)) scale(.975); box-shadow: var(--key-shadow-pressed); }
     .button:focus-visible .cap { outline: 3px solid rgba(86,189,233,.38); outline-offset: 4px; }
-    .icon { position: relative; z-index: 2; color: #3f7189; font-size: clamp(1.25rem, 5vw, 2.15rem); line-height: 1; }
+    .icon { position: relative; z-index: 2; color: #111827; font-size: clamp(1.25rem, 5vw, 2.15rem); line-height: 1; }
     .icon-image { position: relative; z-index: 2; display: block; width: clamp(1.35rem, 6vw, 4.2rem); height: clamp(1.35rem, 6vw, 4.2rem); object-fit: contain; opacity: .88; width: clamp(1.35rem, 34cqw, 4.2rem); height: clamp(1.35rem, 34cqw, 4.2rem); }
-    .label { position: relative; z-index: 2; max-width: 100%; overflow: hidden; color: #476a7c; font-size: clamp(.55rem, 1.8vw, .82rem); font-size: clamp(.55rem, 10cqw, .82rem); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
-    .value { position: relative; z-index: 2; color: var(--accent-color); font-size: clamp(.55rem, 2vw, 1rem); font-size: clamp(.55rem, 11cqw, 1rem); font-variant-numeric: tabular-nums; }
+    /* Stream Deck風に、通常ボタンのラベルは表示しません。 */
+    .label { display: none; }
+    .value { position: relative; z-index: 2; color: #111827; font-size: clamp(.75rem, 11cqw, 1.1rem); font-weight: 650; font-variant-numeric: tabular-nums; }
     .empty .display { background: rgb(255 255 255 / var(--display-opacity)); box-shadow: inset 0 0 14px rgb(255 255 255 / var(--display-opacity)); }
     .empty .cap { background: rgba(255,255,255,.12); opacity: .82; }
 
@@ -162,11 +164,11 @@
   <main class="deck">
     <header class="deck-header"><h1>Liquid Deck</h1><span class="status">prototype</span></header>
     <section class="grid" aria-label="Liquid Deck buttons">
-      <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./時計.png" alt="時計"><span class="label">時計</span><span class="value" id="clock">--:--</span></span></button>
+      <button class="button" aria-label="時計"><span class="display"></span><span class="cap"><span class="value" id="clock">--:--</span></span></button>
       <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./天気.png" alt="天気"><span class="label">天気</span><span class="value">準備中</span></span></button>
       <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./QR.png" alt="QR作成"><span class="label">QR作成</span></span></button>
       <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./リンク.png" alt="サイト"><span class="label">サイト</span></span></button>
-      <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./カレンダー.png" alt="カレンダー"><span class="label">カレンダー</span></span></button>
+      <button class="button" aria-label="カレンダー"><span class="display"></span><span class="cap"><span class="value" id="date">--/--</span></span></button>
       <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./スピード.png" alt="速度テスト"><span class="label">速度テスト</span></span></button>
       <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./後で見る.png" alt="後で見る"><span class="label">後で見る</span></span></button>
       <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./設定.png" alt="設定"><span class="label">設定</span></span></button>
@@ -182,7 +184,12 @@
   </main>
   <script>
     const clock = document.querySelector('#clock');
-    const updateClock = () => { clock.textContent = new Intl.DateTimeFormat('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date()); };
+    const date = document.querySelector('#date');
+    const updateClock = () => {
+      const now = new Date();
+      clock.textContent = new Intl.DateTimeFormat('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(now);
+      date.textContent = new Intl.DateTimeFormat('ja-JP', { month: 'numeric', day: 'numeric', weekday: 'short' }).format(now);
+    };
     updateClock();
     setInterval(updateClock, 1000);
   </script>
