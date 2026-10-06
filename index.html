@@ -230,6 +230,9 @@
     .saved-link small { display: block; min-width: 0; overflow: hidden; color: #6b7280; text-overflow: ellipsis; white-space: nowrap; }
     .saved-link button { padding: 4px 7px; border: 1px solid rgba(17,24,39,.16); border-radius: 7px; background: transparent; cursor: pointer; }
     .link-empty { color: #6b7280; font-size: .85rem; }
+    .calendar-cap { display: grid; align-content: center; gap: 3px; padding: 8%; text-align: center; }
+    .calendar-date, .calendar-time { font-size: clamp(.62rem, 2.2cqw, .9rem); font-weight: 600; }
+    .calendar-event { width: 100%; overflow: hidden; font-size: clamp(.58rem, 2.4cqw, .95rem); text-overflow: ellipsis; white-space: nowrap; }
     .empty .display { background: rgb(255 255 255 / var(--display-opacity)); box-shadow: inset 0 0 14px rgb(255 255 255 / var(--display-opacity)); }
     .empty .cap { background: rgba(255,255,255,.12); opacity: .82; }
 
@@ -252,7 +255,7 @@
       <button class="button" data-action="weather" aria-label="天気"><span class="display"></span><span class="cap weather-cap"><img class="weather-icon" id="weather-icon" src="./assets/weather/clear-day.png" alt="天気"><span class="weather-date" id="weather-date">--/--</span><span class="weather-temp" id="weather-temp">--℃</span></span></button>
       <button class="button" data-action="qr" aria-label="QR作成"><span class="display"></span><span class="cap"><img class="icon-image" src="./QR.png" alt="QR作成"><span class="label">QR作成</span></span></button>
       <button class="button" data-action="links" aria-label="よく使うサイト"><span class="display"></span><span class="cap"><img class="icon-image" src="./リンク.png" alt="サイト"><span class="label">サイト</span></span></button>
-      <button class="button" aria-label="カレンダー"><span class="display"></span><span class="cap"><img class="icon-image" src="./カレンダー.png" alt="カレンダー"></span></button>
+      <button class="button" data-action="calendar" aria-label="カレンダー"><span class="display"></span><span class="cap calendar-cap"><span class="calendar-date" id="calendar-date">--/--</span><span class="calendar-time" id="calendar-time">--:--</span><span class="calendar-event" id="calendar-event">カレンダー未設定</span></span></button>
       <button class="button" data-action="speed" aria-label="速度テスト"><span class="display"></span><span class="cap"><img class="icon-image" src="./スピード.png" alt="速度テスト"><span class="label">速度テスト</span></span></button>
       <button class="button" data-action="later" aria-label="後で見る"><span class="display"></span><span class="cap"><img class="icon-image" src="./後で見る.png" alt="後で見る"><span class="label">後で見る</span></span></button>
       <button class="button" data-action="settings" aria-label="設定"><span class="display"></span><span class="cap"><img class="icon-image" src="./設定.png" alt="設定"><span class="label">設定</span></span></button>
@@ -317,6 +320,14 @@
       <div class="link-list" id="later-list"></div>
     </section>
   </div>
+  <div class="link-modal" id="calendar-modal" aria-hidden="true">
+    <section class="link-card" role="dialog" aria-modal="true" aria-labelledby="calendar-title">
+      <button class="link-close" id="calendar-close" type="button">閉じる</button>
+      <h2 id="calendar-title">カレンダー設定</h2>
+      <div class="link-form"><input id="calendar-url" type="url" placeholder="公開カレンダーのICS URL"><span class="setting-note">Google Calendarなどの公開iCalendar（.ics）URLを入力してください。</span><button id="calendar-save" type="button">保存して更新</button></div>
+      <span class="setting-note" id="calendar-status"></span>
+    </section>
+  </div>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
@@ -374,6 +385,7 @@
     let currentUser = null;
     let savedLinks = JSON.parse(localStorage.getItem('liquid-deck-saved-links') || '[]');
     let laterLinks = JSON.parse(localStorage.getItem('liquid-deck-later-links') || '[]');
+    let calendarUrl = localStorage.getItem('liquid-deck-calendar-url') || '';
     let syncedLayoutOrder = null;
     const applyLayoutOrder = (order) => {
       if (!Array.isArray(order)) return;
@@ -394,7 +406,7 @@
       const { data: { session } } = await supabaseClient.auth.getSession();
       updateAuthButton(session);
       if (!currentUser) return;
-      const { data, error } = await supabaseClient.from('user_settings').select('weather_location, layout_order, saved_links, later_links').eq('user_id', currentUser.id).maybeSingle();
+      const { data, error } = await supabaseClient.from('user_settings').select('weather_location, layout_order, saved_links, later_links, calendar_url').eq('user_id', currentUser.id).maybeSingle();
       if (error) console.warn('同期データの読み込みに失敗しました。Supabaseの列追加を確認してください。', error);
       if (!data) {
         await syncUserSettings();
@@ -408,10 +420,11 @@
       applyLayoutOrder(syncedLayoutOrder);
       if (Array.isArray(data?.saved_links)) { savedLinks = data.saved_links; localStorage.setItem('liquid-deck-saved-links', JSON.stringify(savedLinks)); renderLinkList('saved'); }
       if (Array.isArray(data?.later_links)) { laterLinks = data.later_links; localStorage.setItem('liquid-deck-later-links', JSON.stringify(laterLinks)); renderLinkList('later'); }
+      if (typeof data?.calendar_url === 'string') { calendarUrl = data.calendar_url; localStorage.setItem('liquid-deck-calendar-url', calendarUrl); loadCalendarEvent(); }
     };
     const syncUserSettings = async () => {
       if (!currentUser || !supabaseClient) return;
-      const { error } = await supabaseClient.from('user_settings').upsert({ user_id: currentUser.id, weather_location: weatherLocation, layout_order: [...grid.children].map((item) => item.dataset.slot), saved_links: savedLinks, later_links: laterLinks, updated_at: new Date().toISOString() });
+      const { error } = await supabaseClient.from('user_settings').upsert({ user_id: currentUser.id, weather_location: weatherLocation, layout_order: [...grid.children].map((item) => item.dataset.slot), saved_links: savedLinks, later_links: laterLinks, calendar_url: calendarUrl, updated_at: new Date().toISOString() });
       if (error) console.warn('user_settings同期に失敗しました。SQLの列追加を確認してください。', error);
     };
     authButton.addEventListener('click', async () => {
@@ -556,6 +569,37 @@
       document.querySelector(`#${prefix}-add`).addEventListener('click', () => { const title = info.title.value.trim(); const url = normalizeUrl(info.url.value); if (!url) { info.url.focus(); return; } const item = { title: title || url, url, iconUrl: faviconFor(url) }; const items = kind === 'saved' ? savedLinks : laterLinks; items.push(item); localStorage.setItem(kind === 'saved' ? 'liquid-deck-saved-links' : 'liquid-deck-later-links', JSON.stringify(items)); info.title.value = ''; info.url.value = ''; renderLinkList(kind); syncUserSettings(); });
     });
     renderLinkList('saved'); renderLinkList('later');
+
+    const calendarDate = document.querySelector('#calendar-date');
+    const calendarTime = document.querySelector('#calendar-time');
+    const calendarEvent = document.querySelector('#calendar-event');
+    const calendarModal = document.querySelector('#calendar-modal');
+    const calendarInput = document.querySelector('#calendar-url');
+    const calendarStatus = document.querySelector('#calendar-status');
+    const unfoldIcs = (text) => text.replace(/\r?\n[ \t]/g, '').replace(/\\,/g, ',').replace(/\\n/g, ' ');
+    const parseCalendar = (text) => {
+      const events = []; const blocks = unfoldIcs(text).split('BEGIN:VEVENT').slice(1);
+      blocks.forEach((block) => { const start = block.match(/(?:^|\n)DTSTART(?:;[^:]*)?:([^\n]+)/)?.[1]; const title = block.match(/(?:^|\n)SUMMARY:([^\n]+)/)?.[1]; if (!start || !title) return; const value = start.trim(); const utc = value.endsWith('Z'); const year = Number(value.slice(0, 4)); const month = Number(value.slice(4, 6)) - 1; const day = Number(value.slice(6, 8)); const hour = Number(value.slice(9, 11) || 0); const minute = Number(value.slice(11, 13) || 0); const date = utc ? new Date(Date.UTC(year, month, day, hour, minute)) : new Date(year, month, day, hour, minute); if (date >= new Date()) events.push({ date, title }); });
+      return events.sort((a, b) => a.date - b.date)[0];
+    };
+    const loadCalendarEvent = async () => {
+      if (!calendarUrl) { calendarDate.textContent = '--/--'; calendarTime.textContent = '--:--'; calendarEvent.textContent = 'カレンダー未設定'; return; }
+      try {
+        const response = await fetch(calendarUrl, { cache: 'no-store' });
+        if (!response.ok) throw new Error('calendar fetch failed');
+        const event = parseCalendar(await response.text()); if (!event) throw new Error('no event');
+        calendarDate.textContent = new Intl.DateTimeFormat('ja-JP', { month: 'numeric', day: 'numeric', weekday: 'short' }).format(event.date);
+        calendarTime.textContent = new Intl.DateTimeFormat('ja-JP', { hour: '2-digit', minute: '2-digit' }).format(event.date);
+        calendarEvent.textContent = event.title;
+        calendarStatus.textContent = '';
+      } catch { calendarEvent.textContent = '予定を取得できません'; calendarStatus.textContent = 'URLまたは公開設定を確認してください。'; }
+    };
+    document.querySelector('[data-action="calendar"]').addEventListener('click', () => { calendarInput.value = calendarUrl; calendarModal.classList.add('open'); calendarModal.setAttribute('aria-hidden', 'false'); calendarInput.focus(); });
+    const closeCalendar = () => { calendarModal.classList.remove('open'); calendarModal.setAttribute('aria-hidden', 'true'); };
+    document.querySelector('#calendar-close').addEventListener('click', closeCalendar);
+    calendarModal.addEventListener('click', (event) => { if (event.target === calendarModal) closeCalendar(); });
+    document.querySelector('#calendar-save').addEventListener('click', () => { const value = normalizeUrl(calendarInput.value); if (!value) { calendarInput.focus(); return; } calendarUrl = value; localStorage.setItem('liquid-deck-calendar-url', calendarUrl); syncUserSettings(); loadCalendarEvent(); closeCalendar(); });
+    loadCalendarEvent();
 
     const openSettings = () => {
       settingsAuth.textContent = currentUser ? 'logout' : 'login';
