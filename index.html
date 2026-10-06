@@ -178,49 +178,51 @@
     .weather-temp { position: relative; z-index: 2; color: #111827; font-size: clamp(.55rem, 9cqw, .82rem); font-weight: 650; }
     .weather-icon { position: relative; z-index: 2; width: var(--weather-icon-size); height: var(--weather-icon-size); object-fit: contain; }
     .weather-cap { display: flex; flex-direction: column; justify-content: center; align-items: center; }
-    .qr-modal { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; padding: 20px; background: rgba(17,24,39,.24); backdrop-filter: blur(8px); }
+    .qr-modal, .weather-modal, .speed-modal, .settings-modal, .link-modal { background: rgba(17,24,39,.12); backdrop-filter: blur(1px); }
+    .qr-modal { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; padding: 24px; }
     .qr-modal.open { display: grid; }
-    .qr-card, .weather-card, .speed-card, .settings-card, .link-card { border: 1px solid rgba(255,255,255,.82); background: linear-gradient(145deg, rgba(255,255,255,.7), rgba(255,255,255,.38)); box-shadow: 0 18px 50px rgba(63,78,102,.18), inset 0 1px 0 rgba(255,255,255,.8); backdrop-filter: blur(22px) saturate(125%); }
-    .qr-card h2 { margin: 0 0 14px; font-size: 1rem; }
+    .qr-card, .weather-card, .speed-card, .settings-card, .link-card { position: relative; border: 1px solid rgba(255,255,255,.62); background: linear-gradient(145deg, rgba(255,255,255,.24), rgba(255,255,255,.12)); box-shadow: 0 18px 50px rgba(63,78,102,.18), inset 0 1px 0 rgba(255,255,255,.55); backdrop-filter: blur(14px) saturate(115%); }
+    .weather-close, .speed-close, .settings-close, .link-close { position: absolute; top: 18px; right: 18px; float: none; }
+    .qr-card h2 { margin: 0 0 22px; font-size: 1rem; text-align: center; }
     .qr-input { width: 100%; min-height: 74px; resize: vertical; padding: 10px; border: 1px solid rgba(17,24,39,.22); border-radius: 8px; background: rgba(255,255,255,.75); color: #111827; font: inherit; }
-    .qr-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+    .qr-actions { display: flex; justify-content: center; gap: 10px; margin-top: 18px; }
     .qr-actions button { padding: 8px 12px; border: 1px solid rgba(17,24,39,.22); border-radius: 8px; background: rgba(255,255,255,.8); color: #111827; cursor: pointer; font: inherit; }
     #qr-output { display: grid; place-items: center; min-height: 180px; margin-top: 14px; }
-    .weather-modal { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; padding: 20px; background: rgba(17,24,39,.24); backdrop-filter: blur(8px); }
+    .weather-modal { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; padding: 24px; }
     .weather-modal.open { display: grid; }
-    .weather-card { width: min(92vw, 360px); padding: 22px; border-radius: 20px; color: #111827; }
-    .weather-card h2 { margin: 0 0 14px; font-size: 1rem; }
+    .weather-card { width: min(92vw, 360px); padding: 30px; border-radius: 20px; color: #111827; }
+    .weather-card h2 { margin: 0 0 22px; font-size: 1rem; text-align: center; }
     .weather-input { width: 100%; padding: 10px; border: 1px solid rgba(17,24,39,.22); border-radius: 8px; background: rgba(255,255,255,.75); color: #111827; font: inherit; }
     .weather-results { display: grid; gap: 6px; margin-top: 10px; }
     .weather-result { padding: 9px; border: 1px solid rgba(17,24,39,.14); border-radius: 8px; background: rgba(255,255,255,.7); color: #111827; text-align: left; cursor: pointer; font: inherit; }
     .weather-close { float: right; padding: 5px 9px; border: 1px solid rgba(17,24,39,.18); border-radius: 8px; background: transparent; cursor: pointer; }
-    .speed-modal { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; padding: 20px; background: rgba(17,24,39,.24); backdrop-filter: blur(8px); }
+    .speed-modal { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; padding: 24px; }
     .speed-modal.open { display: grid; }
-    .speed-card { width: min(92vw, 380px); padding: 22px; border-radius: 20px; color: #111827; }
-    .speed-card h2 { margin: 0 0 14px; font-size: 1rem; }
+    .speed-card { width: min(92vw, 380px); padding: 30px; border-radius: 20px; color: #111827; }
+    .speed-card h2 { margin: 0 0 22px; font-size: 1rem; text-align: center; }
     .speed-close { float: right; padding: 5px 9px; border: 1px solid rgba(17,24,39,.18); border-radius: 8px; background: transparent; cursor: pointer; }
     .speed-start { width: 100%; padding: 10px; border: 1px solid rgba(17,24,39,.2); border-radius: 8px; background: rgba(255,255,255,.7); cursor: pointer; font: inherit; }
     .speed-status { min-height: 1.4em; margin: 12px 0; color: #374151; font-size: .85rem; }
     .speed-results { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .speed-result { padding: 10px; border-radius: 8px; background: rgba(17,24,39,.06); text-align: center; }
     .speed-result strong { display: block; font-size: 1.05rem; }
-    .settings-modal { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; padding: 20px; background: rgba(17,24,39,.24); backdrop-filter: blur(8px); }
+    .settings-modal { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; padding: 24px; }
     .settings-modal.open { display: grid; }
-    .settings-card { width: min(92vw, 380px); max-height: 88svh; overflow: auto; padding: 22px; border-radius: 20px; color: #111827; }
-    .settings-card h2 { margin: 0 0 16px; font-size: 1rem; }
+    .settings-card { width: min(92vw, 380px); max-height: 88svh; overflow: auto; padding: 30px; border-radius: 20px; color: #111827; }
+    .settings-card h2 { margin: 0 0 22px; font-size: 1rem; text-align: center; }
     .settings-close { float: right; padding: 5px 9px; border: 1px solid rgba(17,24,39,.18); border-radius: 8px; background: transparent; cursor: pointer; }
-    .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid rgba(17,24,39,.1); font-size: .85rem; }
+    .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 17px 0; border-bottom: 1px solid rgba(17,24,39,.1); font-size: .85rem; }
     .setting-row button, .setting-row select { padding: 6px 9px; border: 1px solid rgba(17,24,39,.2); border-radius: 8px; background: rgba(255,255,255,.7); color: #111827; font: inherit; }
-    .setting-wide { display: grid; gap: 8px; padding: 14px 0; border-bottom: 1px solid rgba(17,24,39,.1); font-size: .85rem; }
+    .setting-wide { display: grid; gap: 12px; padding: 18px 0; border-bottom: 1px solid rgba(17,24,39,.1); font-size: .85rem; text-align: center; }
     .setting-wide input { width: 100%; padding: 7px; border: 1px solid rgba(17,24,39,.2); border-radius: 8px; background: rgba(255,255,255,.7); color: #111827; font: inherit; }
     .setting-wide button { padding: 7px 9px; border: 1px solid rgba(17,24,39,.2); border-radius: 8px; background: rgba(255,255,255,.7); color: #111827; cursor: pointer; font: inherit; }
     .setting-note { color: #4b5563; font-size: .72rem; }
-    .link-modal { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; padding: 20px; background: rgba(17,24,39,.24); backdrop-filter: blur(8px); }
+    .link-modal { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; padding: 24px; }
     .link-modal.open { display: grid; }
-    .link-card { width: min(92vw, 440px); max-height: 88svh; overflow: auto; padding: 22px; border-radius: 20px; color: #111827; }
-    .link-card h2 { margin: 0 0 14px; font-size: 1rem; }
+    .link-card { width: min(92vw, 440px); max-height: 88svh; overflow: auto; padding: 30px; border-radius: 20px; color: #111827; }
+    .link-card h2 { margin: 0 0 22px; font-size: 1rem; text-align: center; }
     .link-close { float: right; padding: 5px 9px; border: 1px solid rgba(17,24,39,.18); border-radius: 8px; background: transparent; cursor: pointer; }
-    .link-form { display: grid; gap: 8px; padding-bottom: 14px; border-bottom: 1px solid rgba(17,24,39,.1); }
+    .link-form { display: grid; gap: 12px; padding-bottom: 18px; border-bottom: 1px solid rgba(17,24,39,.1); text-align: center; }
     .link-form input { width: 100%; padding: 8px; border: 1px solid rgba(17,24,39,.2); border-radius: 8px; background: rgba(255,255,255,.7); color: #111827; font: inherit; }
     .link-form button { padding: 8px; border: 1px solid rgba(17,24,39,.2); border-radius: 8px; background: rgba(255,255,255,.7); cursor: pointer; font: inherit; }
     .link-list { display: grid; gap: 8px; margin-top: 14px; }
