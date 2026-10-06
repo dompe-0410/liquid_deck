@@ -14,6 +14,7 @@
       --page-glow-b: rgba(222, 207, 255, .52); /* purple */
       --page-glow-c: rgba(218, 238, 157, .46); /* yellow-green */
       --page-glow-blur: 28px; /* lower = more visible shape */
+      --page-glow-c-size: 24vw;
       --page-text: #274052;
       --muted-text: #7890a0;
       --accent-color: #56bde9;
@@ -27,6 +28,8 @@
       /* Outer shadow separates the transparent cap from its display. */
       --key-shadow: 0 16px 24px rgba(89, 119, 142, .18), 0 4px 7px rgba(89, 119, 142, .10), inset 0 1px rgba(255,255,255,.9);
       --key-shadow-pressed: 0 5px 9px rgba(89, 119, 142, .12), inset 0 3px 9px rgba(117, 166, 188, .12);
+      --key-side-height: 5px; /* visible lower side of the keycap */
+      --key-side-color: rgba(111, 157, 177, .34);
       --key-tint: rgba(255, 255, 255, .15);
       --key-refraction: url(#liquid-glass-filter);
       --grid-gap: clamp(10px, 2.6vw, 20px);
@@ -56,8 +59,19 @@
     }
     body::before { top: -18vw; left: -12vw; background: var(--page-glow-a); }
     body::after { right: -15vw; bottom: -20vw; background: var(--page-glow-b); }
-    /* A third pool reduces flat white areas without making the background busy. */
-    body { background-image: radial-gradient(circle at 78% 24%, var(--page-glow-c), transparent 24vw); }
+    /* A third pool uses the same blur as the blue and purple pools. */
+    .ambient-lime {
+      position: fixed;
+      z-index: -1;
+      top: 5vh;
+      right: 6vw;
+      width: var(--page-glow-c-size);
+      height: var(--page-glow-c-size);
+      border-radius: 50%;
+      background: var(--page-glow-c);
+      filter: blur(var(--page-glow-blur));
+      pointer-events: none;
+    }
 
     .deck { width: min(92vw, 760px); padding: clamp(16px, 4vw, 32px); }
     .deck-header { display: flex; align-items: end; justify-content: space-between; margin: 0 3px 22px; }
@@ -100,18 +114,19 @@
       gap: 5px;
       padding: 10px;
       border: 1px solid var(--key-border);
+      border-bottom: 3px solid var(--key-side-color);
       border-radius: var(--key-radius);
       background-color: var(--key-tint);
       /* Thin top reflection + nearly invisible body preserve transparency. */
       background-image: linear-gradient(145deg, rgba(255,255,255,.32), rgba(255,255,255,.025) 46%, rgba(255,255,255,.16));
-      /* The lower inset line suggests a thicker rounded side wall. */
-      box-shadow: var(--key-shadow), inset 0 1px 1px rgba(255,255,255,.76), inset 0 -2px 2px rgba(91,125,145,.20);
+      /* The lower inset band and bottom border make the physical side visible. */
+      box-shadow: var(--key-shadow), inset 0 1px 1px rgba(255,255,255,.76), inset 0 calc(var(--key-side-height) * -1) var(--key-side-height) var(--key-side-color);
       backdrop-filter: blur(var(--key-blur)) saturate(1.35) var(--key-refraction);
       -webkit-backdrop-filter: blur(var(--key-blur)) saturate(1.35) var(--key-refraction);
       transition: transform .14s ease, background .14s ease, box-shadow .14s ease, border-color .14s ease;
     }
     .button:hover .cap { background: linear-gradient(145deg, rgba(255,255,255,.54), var(--key-background-hover)); border-color: #fff; }
-    .button:active .cap { transform: translateY(4px) scale(.975); box-shadow: var(--key-shadow-pressed); }
+    .button:active .cap { transform: translateY(var(--key-side-height)) scale(.975); box-shadow: var(--key-shadow-pressed); }
     .button:focus-visible .cap { outline: 3px solid rgba(86,189,233,.38); outline-offset: 4px; }
     .icon { position: relative; z-index: 2; color: #3f7189; font-size: clamp(1.25rem, 5vw, 2.15rem); line-height: 1; }
     .label { position: relative; z-index: 2; max-width: 100%; overflow: hidden; color: #476a7c; font-size: clamp(.62rem, 2vw, .82rem); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
@@ -124,6 +139,7 @@
   </style>
 </head>
 <body>
+  <div class="ambient-lime" aria-hidden="true"></div>
   <svg width="0" height="0" aria-hidden="true" style="position:absolute">
     <filter id="liquid-glass-filter" color-interpolation-filters="sRGB" x="-10%" y="-10%" width="120%" height="120%">
       <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="1" seed="7" result="noise" />
