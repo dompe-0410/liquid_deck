@@ -377,6 +377,7 @@
       new QRCode(qrOutput, { text, width: 180, height: 180, colorDark: '#111827', colorLight: '#ffffff' });
     });
     qrModal.addEventListener('click', (event) => { if (event.target === qrModal) closeQr(); });
+    qrInput.addEventListener('keydown', (event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); document.querySelector('#qr-generate').click(); } });
 
     // 天気はページ更新時に東京都へ戻り、選択した地域は保存しません。
     const weatherIcon = document.querySelector('#weather-icon');
@@ -578,6 +579,8 @@
       document.querySelector(`[data-action="${action}"]`).addEventListener('click', () => openLinkModal(kind)); document.querySelector(`#${prefix}-close`).addEventListener('click', () => closeLinkModal(kind));
       info.modal.addEventListener('click', (event) => { if (event.target === info.modal) closeLinkModal(kind); });
       document.querySelector(`#${prefix}-add`).addEventListener('click', () => { const title = info.title.value.trim(); const url = normalizeUrl(info.url.value); if (!url) { info.url.focus(); return; } const item = { title: title || url, url, iconUrl: faviconFor(url) }; const items = kind === 'saved' ? savedLinks : laterLinks; items.push(item); localStorage.setItem(kind === 'saved' ? 'liquid-deck-saved-links' : 'liquid-deck-later-links', JSON.stringify(items)); info.title.value = ''; info.url.value = ''; renderLinkList(kind); syncUserSettings(); });
+      info.title.addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); info.url.focus(); } });
+      info.url.addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); document.querySelector(`#${prefix}-add`).click(); } });
     });
     renderLinkList('saved'); renderLinkList('later');
 
@@ -617,6 +620,14 @@
     calendarModal.addEventListener('click', (event) => { if (event.target === calendarModal) closeCalendar(); });
     document.querySelector('#calendar-save').addEventListener('click', () => { const value = normalizeUrl(calendarInput.value); if (!value) { calendarInput.focus(); return; } calendarUrl = value; localStorage.setItem('liquid-deck-calendar-url', calendarUrl); syncUserSettings(); loadCalendarEvent(); closeCalendar(); });
     loadCalendarEvent();
+
+    // どのダイアログでもEscキーで閉じられるようにします。
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      const modal = document.querySelector('.qr-modal.open, .weather-modal.open, .speed-modal.open, .settings-modal.open, .link-modal.open');
+      if (!modal) return;
+      modal.querySelector('button[id$="-close"]')?.click();
+    });
 
     const openSettings = () => {
       settingsAuth.textContent = currentUser ? 'logout' : 'login';
