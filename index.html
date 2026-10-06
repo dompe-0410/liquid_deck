@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#101827" />
+  <title>Liquid Deck</title>
+  <style>
+    :root {
+      --page-bg: #0b1020;
+      --panel-bg: rgba(20, 31, 54, .72);
+      --key-bg: rgba(255, 255, 255, .10);
+      --key-border: rgba(255, 255, 255, .24);
+      --key-radius: 22px;
+      --key-shadow: 0 16px 30px rgba(0, 0, 0, .28), inset 0 1px rgba(255, 255, 255, .20);
+      --accent: #7dd3fc;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      color: #f8fafc;
+      font-family: system-ui, sans-serif;
+      background: radial-gradient(circle at 20% 10%, #263b68, transparent 38%), var(--page-bg);
+    }
+
+    .deck {
+      width: min(92vw, 760px);
+      padding: clamp(16px, 4vw, 34px);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 32px;
+      background: var(--panel-bg);
+      box-shadow: 0 30px 80px rgba(0,0,0,.35), inset 0 1px rgba(255,255,255,.12);
+      backdrop-filter: blur(24px);
+    }
+
+    header { display: flex; justify-content: space-between; align-items: end; margin-bottom: 22px; }
+    h1 { margin: 0; font-size: clamp(1.3rem, 4vw, 2rem); letter-spacing: .04em; }
+    .status { color: var(--accent); font-size: .8rem; }
+
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(8px, 2vw, 16px); }
+    .key {
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      gap: 5px;
+      padding: 10px;
+      color: inherit;
+      border: 1px solid var(--key-border);
+      border-radius: var(--key-radius);
+      background: linear-gradient(145deg, rgba(255,255,255,.18), var(--key-bg));
+      box-shadow: var(--key-shadow);
+      backdrop-filter: blur(14px);
+      cursor: pointer;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
+    }
+    .key:hover { border-color: var(--accent); background: rgba(125,211,252,.18); }
+    .key:active { transform: translateY(3px) scale(.97); box-shadow: 0 7px 14px rgba(0,0,0,.25), inset 0 2px 8px rgba(0,0,0,.2); }
+    .icon { font-size: clamp(1.3rem, 5vw, 2.2rem); }
+    .label { font-size: clamp(.65rem, 2vw, .85rem); opacity: .82; }
+    .time { font-variant-numeric: tabular-nums; font-size: clamp(.75rem, 2.5vw, 1.1rem); color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main class="deck">
+    <header>
+      <h1>Liquid Deck</h1>
+      <span class="status">prototype</span>
+    </header>
+    <section class="grid" aria-label="Liquid Deck buttons">
+      <button class="key"><span class="icon">◷</span><span class="label">時計</span><span class="time" id="clock">--:--</span></button>
+      <button class="key"><span class="icon">☀</span><span class="label">天気</span><span class="time">準備中</span></button>
+      <button class="key"><span class="icon">▣</span><span class="label">QR作成</span></button>
+      <button class="key"><span class="icon">↗</span><span class="label">サイト</span></button>
+      <button class="key"><span class="icon">▤</span><span class="label">カレンダー</span></button>
+      <button class="key"><span class="icon">⌁</span><span class="label">速度テスト</span></button>
+      <button class="key"><span class="icon">◫</span><span class="label">後で見る</span></button>
+      <button class="key"><span class="icon">⚙</span><span class="label">設定</span></button>
+      <button class="key"></button><button class="key"></button><button class="key"></button><button class="key"></button>
+      <button class="key"></button><button class="key"></button><button class="key"></button><button class="key"></button>
+    </section>
+  </main>
+  <script>
+    const clock = document.querySelector('#clock');
+    const updateClock = () => { clock.textContent = new Intl.DateTimeFormat('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date()); };
+    updateClock();
+    setInterval(updateClock, 1000);
+  </script>
+</body>
+</html>
