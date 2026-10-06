@@ -576,6 +576,7 @@
     const calendarModal = document.querySelector('#calendar-modal');
     const calendarInput = document.querySelector('#calendar-url');
     const calendarStatus = document.querySelector('#calendar-status');
+    const calendarProxyUrl = 'https://mmxyzwydhewswlfpragp.supabase.co/functions/v1/calendar-proxy';
     const unfoldIcs = (text) => text.replace(/\r?\n[ \t]/g, '').replace(/\\,/g, ',').replace(/\\n/g, ' ');
     const parseCalendar = (text) => {
       const events = []; const blocks = unfoldIcs(text).split('BEGIN:VEVENT').slice(1);
@@ -585,7 +586,7 @@
     const loadCalendarEvent = async () => {
       if (!calendarUrl) { calendarDate.textContent = '--/--'; calendarTime.textContent = '--:--'; calendarEvent.textContent = 'カレンダー未設定'; return; }
       try {
-        const response = await fetch(calendarUrl, { cache: 'no-store' });
+        const response = await fetch(calendarProxyUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: calendarUrl }), cache: 'no-store' });
         if (!response.ok) throw new Error('calendar fetch failed');
         const event = parseCalendar(await response.text()); if (!event) throw new Error('no event');
         calendarDate.textContent = new Intl.DateTimeFormat('ja-JP', { month: 'numeric', day: 'numeric', weekday: 'short' }).format(event.date);
