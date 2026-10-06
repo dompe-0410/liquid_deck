@@ -290,18 +290,22 @@
     const defaultWeatherLocation = { name: '東京都', latitude: 35.6762, longitude: 139.6503 };
     let weatherLocation = JSON.parse(localStorage.getItem('liquid-deck-weather-location') || 'null') || defaultWeatherLocation;
     let currentUser = null;
+    const hostedAppUrl = 'https://dompe-0410.github.io/liquid_deck/';
+    const updateAuthButton = (session) => {
+      currentUser = session?.user || null;
+      authButton.textContent = currentUser ? 'logout' : 'login';
+    };
 
     const loadSyncedWeatherLocation = async () => {
       if (!supabaseClient) return;
       const { data: { session } } = await supabaseClient.auth.getSession();
-      currentUser = session?.user || null;
+      updateAuthButton(session);
       if (!currentUser) return;
       const { data } = await supabaseClient.from('user_settings').select('weather_location').eq('user_id', currentUser.id).maybeSingle();
       if (data?.weather_location) {
         weatherLocation = data.weather_location;
         localStorage.setItem('liquid-deck-weather-location', JSON.stringify(weatherLocation));
       }
-      authButton.textContent = 'logout';
     };
     const syncWeatherLocation = async () => {
       if (!currentUser || !supabaseClient) return;
@@ -310,8 +314,9 @@
     authButton.addEventListener('click', async () => {
       if (!supabaseClient) return;
       if (currentUser) { await supabaseClient.auth.signOut(); currentUser = null; authButton.textContent = 'login'; return; }
-      await supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + window.location.pathname } });
+      await supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: hostedAppUrl } });
     });
+    supabaseClient?.auth.onAuthStateChange((_event, session) => updateAuthButton(session));
     loadSyncedWeatherLocation().then(() => loadWeather());
     const weatherIcons = {
       clearDay: './天気アイコン/晴れ・昼.png', clearNight: './天気アイコン/晴れ・よる.png', partlyCloudy: './天気アイコン/晴れときどき曇・昼兼夜.png',
