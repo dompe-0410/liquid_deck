@@ -24,7 +24,7 @@
       --muted-text: #111827;
       /* フォントと文字サイズはここでまとめて変更できます。 */
       --font-ui: "Noto Sans Mono CJK JP", "Noto Sans Mono", monospace;
-      --font-size-clock: clamp(.75rem, 20cqw, 1.1rem); /* 時計の文字 */
+      --font-size-clock: clamp(.7rem, 22cqw, 1.7rem); /* 時計の文字 */
       --font-size-weather-date: clamp(.55rem, 9cqw, .78rem); /* 天気の日付 */
       --icon-size: clamp(1.35rem, 34cqw, 4.2rem); /* 通常アイコン */
       --weather-icon-size: clamp(1.7rem, 34cqw, 4.2rem); /* 天気アイコン */
@@ -101,7 +101,7 @@
     .toggle-track::after { position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.22); content: ""; transition: transform .15s ease; }
     .edit-toggle input:checked + .toggle-track { background: #111827; }
     .edit-toggle input:checked + .toggle-track::after { transform: translateX(16px); }
-    h1 { margin: 0; color: #111827; font-size: clamp(1.35rem, 4vw, 2rem); font-weight: 650; letter-spacing: .06em; }
+    h1 { margin: 0; color: #111827; font-size: clamp(1.35rem, 4vw, 2.3rem); font-weight: 650; letter-spacing: .06em; }
     .status { color: var(--muted-text); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; }
 
     .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--grid-gap); }
@@ -174,6 +174,15 @@
     .value { position: relative; z-index: 2; color: #111827; font-size: var(--font-size-clock); font-weight: 650; font-variant-numeric: tabular-nums; }
     .weather-date { position: relative; z-index: 2; color: #111827; font-size: var(--font-size-weather-date); font-weight: 650; }
     .weather-icon { position: relative; z-index: 2; width: var(--weather-icon-size); height: var(--weather-icon-size); object-fit: contain; }
+    .weather-cap { display: flex; flex-direction: column; justify-content: center; align-items: center; }
+    .qr-modal { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; padding: 20px; background: rgba(17,24,39,.24); backdrop-filter: blur(8px); }
+    .qr-modal.open { display: grid; }
+    .qr-card { width: min(92vw, 360px); padding: 22px; border: 1px solid rgba(255,255,255,.7); border-radius: 16px; background: rgba(255,255,255,.82); color: #111827; box-shadow: 0 18px 50px rgba(0,0,0,.2); }
+    .qr-card h2 { margin: 0 0 14px; font-size: 1rem; }
+    .qr-input { width: 100%; min-height: 74px; resize: vertical; padding: 10px; border: 1px solid rgba(17,24,39,.22); border-radius: 8px; background: rgba(255,255,255,.75); color: #111827; font: inherit; }
+    .qr-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+    .qr-actions button { padding: 8px 12px; border: 1px solid rgba(17,24,39,.22); border-radius: 8px; background: rgba(255,255,255,.8); color: #111827; cursor: pointer; font: inherit; }
+    #qr-output { display: grid; place-items: center; min-height: 180px; margin-top: 14px; }
     .empty .display { background: rgb(255 255 255 / var(--display-opacity)); box-shadow: inset 0 0 14px rgb(255 255 255 / var(--display-opacity)); }
     .empty .cap { background: rgba(255,255,255,.12); opacity: .82; }
 
@@ -190,11 +199,11 @@
     </filter>
   </svg>
   <main class="deck">
-    <header class="deck-header"><h1>Liquid Deck</h1><label class="edit-toggle"><input id="edit-mode" type="checkbox"><span class="toggle-track" aria-hidden="true"></span><span>編集</span></label></header>
+    <header class="deck-header"><h1>Liquid Deck</h1><label class="edit-toggle"><input id="edit-mode" type="checkbox"><span class="toggle-track" aria-hidden="true"></span><span>edit</span></label></header>
     <section class="grid" aria-label="Liquid Deck buttons">
       <button class="button" aria-label="時計"><span class="display"></span><span class="cap"><span class="value" id="clock">--:--</span></span></button>
-      <button class="button" data-key="weather" aria-label="天気"><span class="display"></span><span class="cap"><img class="weather-icon" src="./天気.png" alt="天気"><span class="weather-date" id="weather-date">--/--</span></span></button>
-      <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./QR.png" alt="QR作成"><span class="label">QR作成</span></span></button>
+      <button class="button" data-key="weather" aria-label="天気"><span class="display"></span><span class="cap weather-cap"><img class="weather-icon" src="./天気.png" alt="天気"><span class="weather-date" id="weather-date">--/--</span></span></button>
+      <button class="button" data-action="qr" aria-label="QR作成"><span class="display"></span><span class="cap"><img class="icon-image" src="./QR.png" alt="QR作成"><span class="label">QR作成</span></span></button>
       <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./リンク.png" alt="サイト"><span class="label">サイト</span></span></button>
       <button class="button" aria-label="カレンダー"><span class="display"></span><span class="cap"><img class="icon-image" src="./カレンダー.png" alt="カレンダー"></span></button>
       <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./スピード.png" alt="速度テスト"><span class="label">速度テスト</span></span></button>
@@ -210,6 +219,15 @@
       <button class="button empty" aria-label="未使用"><span class="display"></span><span class="cap"></span></button>
     </section>
   </main>
+  <div class="qr-modal" id="qr-modal" aria-hidden="true">
+    <section class="qr-card" role="dialog" aria-modal="true" aria-labelledby="qr-title">
+      <h2 id="qr-title">QR作成</h2>
+      <textarea class="qr-input" id="qr-input" placeholder="URLや文字を入力"></textarea>
+      <div class="qr-actions"><button type="button" id="qr-close">閉じる</button><button type="button" id="qr-generate">生成</button></div>
+      <div id="qr-output"></div>
+    </section>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script>
     const clock = document.querySelector('#clock');
     const weatherDate = document.querySelector('#weather-date');
@@ -218,11 +236,26 @@
     const updateClock = () => {
       const now = new Date();
       clock.textContent = new Intl.DateTimeFormat('ja-JP', { hour: '2-digit', minute: '2-digit' }).format(now);
-      weatherDate.textContent = new Intl.DateTimeFormat('ja-JP', { month: 'numeric', day: 'numeric', weekday: 'short' }).format(now);
+      weatherDate.textContent = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' }).format(now);
     };
     updateClock();
     setInterval(updateClock, 1000);
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+
+    const qrModal = document.querySelector('#qr-modal');
+    const qrInput = document.querySelector('#qr-input');
+    const qrOutput = document.querySelector('#qr-output');
+    const openQr = () => { qrModal.classList.add('open'); qrModal.setAttribute('aria-hidden', 'false'); qrInput.focus(); };
+    const closeQr = () => { qrModal.classList.remove('open'); qrModal.setAttribute('aria-hidden', 'true'); };
+    document.querySelector('[data-action="qr"]').addEventListener('click', openQr);
+    document.querySelector('#qr-close').addEventListener('click', closeQr);
+    document.querySelector('#qr-generate').addEventListener('click', () => {
+      const text = qrInput.value.trim();
+      qrOutput.replaceChildren();
+      if (!text || typeof QRCode === 'undefined') return;
+      new QRCode(qrOutput, { text, width: 180, height: 180, colorDark: '#111827', colorLight: '#ffffff' });
+    });
+    qrModal.addEventListener('click', (event) => { if (event.target === qrModal) closeQr(); });
 
     // 編集モードで並べ替えた順番を保存します。
     const buttons = [...grid.querySelectorAll('.button')];
