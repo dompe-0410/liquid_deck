@@ -210,6 +210,10 @@
     .settings-close { float: right; padding: 5px 9px; border: 1px solid rgba(17,24,39,.18); border-radius: 8px; background: transparent; cursor: pointer; }
     .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid rgba(17,24,39,.1); font-size: .85rem; }
     .setting-row button, .setting-row select { padding: 6px 9px; border: 1px solid rgba(17,24,39,.2); border-radius: 8px; background: rgba(255,255,255,.7); color: #111827; font: inherit; }
+    .setting-wide { display: grid; gap: 8px; padding: 14px 0; border-bottom: 1px solid rgba(17,24,39,.1); font-size: .85rem; }
+    .setting-wide input { width: 100%; padding: 7px; border: 1px solid rgba(17,24,39,.2); border-radius: 8px; background: rgba(255,255,255,.7); color: #111827; font: inherit; }
+    .setting-wide button { padding: 7px 9px; border: 1px solid rgba(17,24,39,.2); border-radius: 8px; background: rgba(255,255,255,.7); color: #111827; cursor: pointer; font: inherit; }
+    .setting-note { color: #4b5563; font-size: .72rem; }
     .empty .display { background: rgb(255 255 255 / var(--display-opacity)); box-shadow: inset 0 0 14px rgb(255 255 255 / var(--display-opacity)); }
     .empty .cap { background: rgba(255,255,255,.12); opacity: .82; }
 
@@ -271,6 +275,7 @@
       <div class="setting-row"><span>時計表示</span><select id="clock-format"><option value="24">24時間</option><option value="12">12時間</option></select></div>
       <div class="setting-row"><span>天気更新</span><select id="weather-interval"><option value="10">10分</option><option value="30">30分</option><option value="60">60分</option></select></div>
       <div class="setting-row"><span>並び順</span><button id="reset-layout" type="button">初期化</button></div>
+      <div class="setting-wide"><strong>上位版よく使う</strong><select id="premium-slot"></select><input id="premium-title" type="text" placeholder="サイト名"><input id="premium-url" type="url" placeholder="https://example.com"><input id="premium-icon" type="file" accept="image/png,image/jpeg,image/webp"><span class="setting-note">カスタム画像は320×320px以下。未指定ならサイトアイコンを使用します。</span><button id="premium-save" type="button">このボタンに登録</button></div>
     </section>
   </div>
   <div class="qr-modal" id="qr-modal" aria-hidden="true">
@@ -336,6 +341,7 @@
     const defaultWeatherLocation = { name: '東京都', latitude: 35.6762, longitude: 139.6503 };
     let weatherLocation = JSON.parse(localStorage.getItem('liquid-deck-weather-location') || 'null') || defaultWeatherLocation;
     let currentUser = null;
+    let premiumLinks = JSON.parse(localStorage.getItem('liquid-deck-premium-links') || '{}');
     let syncedLayoutOrder = null;
     const applyLayoutOrder = (order) => {
       if (!Array.isArray(order)) return;
@@ -356,7 +362,7 @@
       const { data: { session } } = await supabaseClient.auth.getSession();
       updateAuthButton(session);
       if (!currentUser) return;
-      const { data } = await supabaseClient.from('user_settings').select('weather_location, layout_order').eq('user_id', currentUser.id).maybeSingle();
+      const { data } = await supabaseClient.from('user_settings').select('weather_location, layout_order, premium_links').eq('user_id', currentUser.id).maybeSingle();
       if (!data) {
         await syncUserSettings();
         return;
@@ -367,10 +373,11 @@
       }
       syncedLayoutOrder = data?.layout_order;
       applyLayoutOrder(syncedLayoutOrder);
+      if (data?.premium_links) { premiumLinks = data.premium_links; localStorage.setItem('liquid-deck-premium-links', JSON.stringify(premiumLinks)); applyPremiumLinks(); }
     };
     const syncUserSettings = async () => {
       if (!currentUser || !supabaseClient) return;
-      await supabaseClient.from('user_settings').upsert({ user_id: currentUser.id, weather_location: weatherLocation, layout_order: [...grid.children].map((item) => item.dataset.slot), updated_at: new Date().toISOString() });
+      await supabaseClient.from('user_settings').upsert({ user_id: currentUser.id, weather_location: weatherLocation, layout_order: [...grid.children].map((item) => item.dataset.slot), premium_links: premiumLinks, updated_at: new Date().toISOString() });
     };
     authButton.addEventListener('click', async () => {
       if (!supabaseClient) return;
@@ -494,6 +501,31 @@
     document.querySelector('#settings-close').addEventListener('click', closeSettings);
     settingsModal.addEventListener('click', (event) => { if (event.target === settingsModal) closeSettings(); });
     settingsAuth.addEventListener('click', () => { authButton.click(); });
+    document.querySelector('#premium-save').addEventListener('click', async () => {
+      const slot = premiumSlot.value;
+      const title = document.querySelector('#premium-title').value.trim();
+      const url = document.querySelector('#premium-url').value.trim();
+      const file = document.querySelector('#premium-icon').files[0];
+      if (!url) return;
+      try { new URL(url); } catch { return; }
+      let iconUrl = '';
+      if (file) {
+        const image = await createImageBitmap(file);
+        if (image.width > 320 || image.height > 320) { alert('画像は320×320px以下にしてください。'); return; }
+        if (currentUser && supabaseClient) {
+          const path = `${currentUser.id}/${slot}-${Date.now()}.${file.name.split('.').pop()}`;
+          const upload = await supabaseClient.storage.from('custom-icons').upload(path, file, { upsert: true });
+          if (upload.error) { alert('画像を保存できませんでした。'); return; }
+          iconUrl = supabaseClient.storage.from('custom-icons').getPublicUrl(path).data.publicUrl;
+        } else {
+          iconUrl = await new Promise((resolve) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.readAsDataURL(file); });
+        }
+      }
+      premiumLinks[slot] = { title: title || url, url, iconUrl };
+      localStorage.setItem('liquid-deck-premium-links', JSON.stringify(premiumLinks));
+      applyPremiumLinks();
+      await syncUserSettings();
+    });
     clockFormatSelect.addEventListener('change', () => { clockFormat = clockFormatSelect.value; localStorage.setItem('liquid-deck-clock-format', clockFormat); updateClock(); });
     weatherIntervalSelect.addEventListener('change', () => { weatherRefreshMinutes = Number(weatherIntervalSelect.value); localStorage.setItem('liquid-deck-weather-interval', String(weatherRefreshMinutes)); scheduleWeatherRefresh(); });
     document.querySelector('#reset-layout').addEventListener('click', () => {
@@ -510,6 +542,29 @@
     // 編集モードで並べ替えた順番を保存します。
     const buttons = [...grid.querySelectorAll('.button')];
     buttons.forEach((button, index) => { button.dataset.slot = String(index); });
+    const premiumSlot = document.querySelector('#premium-slot');
+    for (let index = 0; index < buttons.length; index += 1) {
+      const option = document.createElement('option');
+      option.value = String(index);
+      option.textContent = `ボタン ${index + 1}`;
+      premiumSlot.appendChild(option);
+    }
+    const applyPremiumLinks = () => {
+      Object.entries(premiumLinks).forEach(([slot, link]) => {
+        const button = buttons.find((item) => item.dataset.slot === slot);
+        if (!button || !link) return;
+        const cap = button.querySelector('.cap');
+        cap.replaceChildren();
+        const image = document.createElement('img');
+        image.className = 'icon-image';
+        image.alt = link.title || 'サイト';
+        image.src = link.iconUrl || `https://icons.duckduckgo.com/ip3/${new URL(link.url).hostname}.ico`;
+        cap.appendChild(image);
+        button.title = link.title || link.url;
+        button.onclick = () => { if (!editMode.checked) window.open(link.url, '_blank', 'noopener'); };
+      });
+    };
+    applyPremiumLinks();
     const savedOrder = JSON.parse(localStorage.getItem('liquid-deck-order') || 'null');
     applyLayoutOrder(syncedLayoutOrder || savedOrder);
 
