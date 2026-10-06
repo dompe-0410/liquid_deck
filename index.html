@@ -82,6 +82,8 @@
 
     .deck { position: relative; z-index: 1; width: min(92vw, 760px); padding: clamp(16px, 4vw, 32px); }
     .deck-header { display: flex; align-items: end; justify-content: space-between; margin: 0 3px 22px; }
+    .edit-toggle { display: flex; align-items: center; gap: 7px; color: #111827; font-size: .75rem; cursor: pointer; user-select: none; }
+    .edit-toggle input { width: 16px; height: 16px; accent-color: #111827; }
     h1 { margin: 0; color: #111827; font-size: clamp(1.35rem, 4vw, 2rem); font-weight: 650; letter-spacing: .06em; }
     .status { color: var(--muted-text); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; }
 
@@ -99,7 +101,12 @@
       background: transparent;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
+      touch-action: none;
     }
+    .button.editable { cursor: grab; }
+    .button.editable:active { cursor: grabbing; }
+    .button.dragging { opacity: .45; transform: scale(.96); }
+    .button.drop-target .cap { outline: 2px dashed rgba(17,24,39,.55); outline-offset: 4px; }
     .display {
       position: absolute;
       inset: 6px;
@@ -146,6 +153,8 @@
     /* Stream Deck風に、通常ボタンのラベルは表示しません。 */
     .label { display: none; }
     .value { position: relative; z-index: 2; color: #111827; font-size: clamp(.75rem, 11cqw, 1.1rem); font-weight: 650; font-variant-numeric: tabular-nums; }
+    .weather-date { position: absolute; top: 10%; z-index: 2; color: #111827; font-size: clamp(.55rem, 9cqw, .78rem); font-weight: 650; }
+    .weather-icon { position: relative; z-index: 2; width: clamp(1.7rem, 34cqw, 4.2rem); height: clamp(1.7rem, 34cqw, 4.2rem); object-fit: contain; }
     .empty .display { background: rgb(255 255 255 / var(--display-opacity)); box-shadow: inset 0 0 14px rgb(255 255 255 / var(--display-opacity)); }
     .empty .cap { background: rgba(255,255,255,.12); opacity: .82; }
 
@@ -162,13 +171,13 @@
     </filter>
   </svg>
   <main class="deck">
-    <header class="deck-header"><h1>Liquid Deck</h1><span class="status">prototype</span></header>
+    <header class="deck-header"><h1>Liquid Deck</h1><label class="edit-toggle"><input id="edit-mode" type="checkbox"><span>編集</span></label></header>
     <section class="grid" aria-label="Liquid Deck buttons">
       <button class="button" aria-label="時計"><span class="display"></span><span class="cap"><span class="value" id="clock">--:--</span></span></button>
-      <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./天気.png" alt="天気"><span class="label">天気</span><span class="value">準備中</span></span></button>
+      <button class="button" data-key="weather" aria-label="天気"><span class="display"></span><span class="cap"><span class="weather-date" id="weather-date">--/--</span><img class="weather-icon" src="./天気.png" alt="天気"></span></button>
       <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./QR.png" alt="QR作成"><span class="label">QR作成</span></span></button>
       <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./リンク.png" alt="サイト"><span class="label">サイト</span></span></button>
-      <button class="button" aria-label="カレンダー"><span class="display"></span><span class="cap"><span class="value" id="date">--/--</span></span></button>
+      <button class="button" aria-label="カレンダー"><span class="display"></span><span class="cap"><img class="icon-image" src="./カレンダー.png" alt="カレンダー"></span></button>
       <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./スピード.png" alt="速度テスト"><span class="label">速度テスト</span></span></button>
       <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./後で見る.png" alt="後で見る"><span class="label">後で見る</span></span></button>
       <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./設定.png" alt="設定"><span class="label">設定</span></span></button>
@@ -184,14 +193,55 @@
   </main>
   <script>
     const clock = document.querySelector('#clock');
-    const date = document.querySelector('#date');
+    const weatherDate = document.querySelector('#weather-date');
+    const grid = document.querySelector('.grid');
+    const editMode = document.querySelector('#edit-mode');
     const updateClock = () => {
       const now = new Date();
       clock.textContent = new Intl.DateTimeFormat('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(now);
-      date.textContent = new Intl.DateTimeFormat('ja-JP', { month: 'numeric', day: 'numeric', weekday: 'short' }).format(now);
+      weatherDate.textContent = new Intl.DateTimeFormat('ja-JP', { month: 'numeric', day: 'numeric', weekday: 'short' }).format(now);
     };
     updateClock();
     setInterval(updateClock, 1000);
+
+    // 編集モードで並べ替えた順番を保存します。
+    const buttons = [...grid.querySelectorAll('.button')];
+    buttons.forEach((button, index) => { button.dataset.slot = String(index); });
+    const savedOrder = JSON.parse(localStorage.getItem('liquid-deck-order') || 'null');
+    if (Array.isArray(savedOrder)) {
+      savedOrder.forEach((slot) => {
+        const button = buttons.find((item) => item.dataset.slot === slot);
+        if (button) grid.appendChild(button);
+      });
+    }
+
+    let draggedButton = null;
+    editMode.addEventListener('change', () => {
+      grid.querySelectorAll('.button').forEach((button) => button.classList.toggle('editable', editMode.checked));
+    });
+    grid.addEventListener('pointerdown', (event) => {
+      if (!editMode.checked) return;
+      const button = event.target.closest('.button');
+      if (!button) return;
+      draggedButton = button;
+      draggedButton.classList.add('dragging');
+      draggedButton.setPointerCapture(event.pointerId);
+    });
+    grid.addEventListener('pointerup', (event) => {
+      if (!draggedButton) return;
+      const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('.button');
+      if (target && target !== draggedButton && target.parentElement === grid) {
+        const buttonsNow = [...grid.children];
+        const from = buttonsNow.indexOf(draggedButton);
+        const to = buttonsNow.indexOf(target);
+        if (from < to) grid.insertBefore(draggedButton, target.nextSibling);
+        else grid.insertBefore(draggedButton, target);
+        localStorage.setItem('liquid-deck-order', JSON.stringify([...grid.children].map((item) => item.dataset.slot)));
+      }
+      draggedButton.classList.remove('dragging');
+      draggedButton.releasePointerCapture?.(event.pointerId);
+      draggedButton = null;
+    });
   </script>
 </body>
 </html>
