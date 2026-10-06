@@ -172,14 +172,15 @@
     .icon-image { position: relative; z-index: 2; display: block; width: var(--icon-size); height: var(--icon-size); object-fit: contain; opacity: .88; }
     /* Stream Deck風に、通常ボタンのラベルは表示しません。 */
     .label { display: none; }
-    .value { position: relative; z-index: 2; color: #111827; font-size: var(--font-size-clock); font-weight: 650; font-variant-numeric: tabular-nums; }
+    .clock-value { position: relative; z-index: 2; display: inline-flex; align-items: baseline; gap: .18em; transform: translateX(2%); color: #111827; font-size: var(--font-size-clock); font-weight: 650; font-variant-numeric: tabular-nums; }
+    .ampm { font-size: .5em; font-weight: 700; letter-spacing: .02em; }
     .weather-date { position: relative; z-index: 2; color: #111827; font-size: var(--font-size-weather-date); font-weight: 650; }
     .weather-temp { position: relative; z-index: 2; color: #111827; font-size: clamp(.55rem, 9cqw, .82rem); font-weight: 650; }
     .weather-icon { position: relative; z-index: 2; width: var(--weather-icon-size); height: var(--weather-icon-size); object-fit: contain; }
     .weather-cap { display: flex; flex-direction: column; justify-content: center; align-items: center; }
     .qr-modal { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; padding: 20px; background: rgba(17,24,39,.24); backdrop-filter: blur(8px); }
     .qr-modal.open { display: grid; }
-    .qr-card { width: min(92vw, 360px); padding: 22px; border: 1px solid rgba(255,255,255,.7); border-radius: 16px; background: rgba(255,255,255,.82); color: #111827; box-shadow: 0 18px 50px rgba(0,0,0,.2); }
+    .qr-card, .weather-card, .speed-card, .settings-card, .link-card { border: 1px solid rgba(255,255,255,.82); background: linear-gradient(145deg, rgba(255,255,255,.7), rgba(255,255,255,.38)); box-shadow: 0 18px 50px rgba(63,78,102,.18), inset 0 1px 0 rgba(255,255,255,.8); backdrop-filter: blur(22px) saturate(125%); }
     .qr-card h2 { margin: 0 0 14px; font-size: 1rem; }
     .qr-input { width: 100%; min-height: 74px; resize: vertical; padding: 10px; border: 1px solid rgba(17,24,39,.22); border-radius: 8px; background: rgba(255,255,255,.75); color: #111827; font: inherit; }
     .qr-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
@@ -187,7 +188,7 @@
     #qr-output { display: grid; place-items: center; min-height: 180px; margin-top: 14px; }
     .weather-modal { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; padding: 20px; background: rgba(17,24,39,.24); backdrop-filter: blur(8px); }
     .weather-modal.open { display: grid; }
-    .weather-card { width: min(92vw, 360px); padding: 22px; border: 1px solid rgba(255,255,255,.7); border-radius: 16px; background: rgba(255,255,255,.86); color: #111827; box-shadow: 0 18px 50px rgba(0,0,0,.2); }
+    .weather-card { width: min(92vw, 360px); padding: 22px; border-radius: 20px; color: #111827; }
     .weather-card h2 { margin: 0 0 14px; font-size: 1rem; }
     .weather-input { width: 100%; padding: 10px; border: 1px solid rgba(17,24,39,.22); border-radius: 8px; background: rgba(255,255,255,.75); color: #111827; font: inherit; }
     .weather-results { display: grid; gap: 6px; margin-top: 10px; }
@@ -195,7 +196,7 @@
     .weather-close { float: right; padding: 5px 9px; border: 1px solid rgba(17,24,39,.18); border-radius: 8px; background: transparent; cursor: pointer; }
     .speed-modal { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; padding: 20px; background: rgba(17,24,39,.24); backdrop-filter: blur(8px); }
     .speed-modal.open { display: grid; }
-    .speed-card { width: min(92vw, 380px); padding: 22px; border: 1px solid rgba(255,255,255,.7); border-radius: 16px; background: rgba(255,255,255,.86); color: #111827; box-shadow: 0 18px 50px rgba(0,0,0,.2); }
+    .speed-card { width: min(92vw, 380px); padding: 22px; border-radius: 20px; color: #111827; }
     .speed-card h2 { margin: 0 0 14px; font-size: 1rem; }
     .speed-close { float: right; padding: 5px 9px; border: 1px solid rgba(17,24,39,.18); border-radius: 8px; background: transparent; cursor: pointer; }
     .speed-start { width: 100%; padding: 10px; border: 1px solid rgba(17,24,39,.2); border-radius: 8px; background: rgba(255,255,255,.7); cursor: pointer; font: inherit; }
@@ -205,7 +206,7 @@
     .speed-result strong { display: block; font-size: 1.05rem; }
     .settings-modal { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; padding: 20px; background: rgba(17,24,39,.24); backdrop-filter: blur(8px); }
     .settings-modal.open { display: grid; }
-    .settings-card { width: min(92vw, 380px); max-height: 88svh; overflow: auto; padding: 22px; border: 1px solid rgba(255,255,255,.7); border-radius: 16px; background: rgba(255,255,255,.86); color: #111827; box-shadow: 0 18px 50px rgba(0,0,0,.2); }
+    .settings-card { width: min(92vw, 380px); max-height: 88svh; overflow: auto; padding: 22px; border-radius: 20px; color: #111827; }
     .settings-card h2 { margin: 0 0 16px; font-size: 1rem; }
     .settings-close { float: right; padding: 5px 9px; border: 1px solid rgba(17,24,39,.18); border-radius: 8px; background: transparent; cursor: pointer; }
     .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid rgba(17,24,39,.1); font-size: .85rem; }
@@ -216,7 +217,7 @@
     .setting-note { color: #4b5563; font-size: .72rem; }
     .link-modal { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; padding: 20px; background: rgba(17,24,39,.24); backdrop-filter: blur(8px); }
     .link-modal.open { display: grid; }
-    .link-card { width: min(92vw, 440px); max-height: 88svh; overflow: auto; padding: 22px; border: 1px solid rgba(255,255,255,.7); border-radius: 16px; background: rgba(255,255,255,.86); color: #111827; box-shadow: 0 18px 50px rgba(0,0,0,.2); }
+    .link-card { width: min(92vw, 440px); max-height: 88svh; overflow: auto; padding: 22px; border-radius: 20px; color: #111827; }
     .link-card h2 { margin: 0 0 14px; font-size: 1rem; }
     .link-close { float: right; padding: 5px 9px; border: 1px solid rgba(17,24,39,.18); border-radius: 8px; background: transparent; cursor: pointer; }
     .link-form { display: grid; gap: 8px; padding-bottom: 14px; border-bottom: 1px solid rgba(17,24,39,.1); }
@@ -249,9 +250,9 @@
     </filter>
   </svg>
   <main class="deck">
-    <header class="deck-header"><h1>Liquid Deck</h1><div style="display:flex;align-items:center;gap:10px"><button class="auth-button" id="auth-button" type="button">login</button><label class="edit-toggle"><input id="edit-mode" type="checkbox"><span class="toggle-track" aria-hidden="true"></span><span>edit</span></label></div></header>
+    <header class="deck-header"><h1>Liquid Deck</h1><div style="display:flex;align-items:center;gap:10px"><label class="edit-toggle"><input id="edit-mode" type="checkbox"><span class="toggle-track" aria-hidden="true"></span><span>edit</span></label></div></header>
     <section class="grid" aria-label="Liquid Deck buttons">
-      <button class="button" aria-label="時計"><span class="display"></span><span class="cap"><span class="value" id="clock">--:--</span></span></button>
+      <button class="button" aria-label="時計"><span class="display"></span><span class="cap"><span class="clock-value"><span id="clock">--:--</span><span class="ampm" id="ampm"></span></span></span></button>
       <button class="button" data-action="weather" aria-label="天気"><span class="display"></span><span class="cap weather-cap"><img class="weather-icon" id="weather-icon" src="./assets/weather/clear-day.png" alt="天気"><span class="weather-date" id="weather-date">--/--</span><span class="weather-temp" id="weather-temp">--℃</span></span></button>
       <button class="button" data-action="qr" aria-label="QR作成"><span class="display"></span><span class="cap"><img class="icon-image" src="./QR.png" alt="QR作成"><span class="label">QR作成</span></span></button>
       <button class="button" data-action="links" aria-label="よく使うサイト"><span class="display"></span><span class="cap"><img class="icon-image" src="./リンク.png" alt="サイト"><span class="label">サイト</span></span></button>
@@ -290,7 +291,7 @@
     <section class="settings-card" role="dialog" aria-modal="true" aria-labelledby="settings-title">
       <button class="settings-close" id="settings-close" type="button">閉じる</button>
       <h2 id="settings-title">設定</h2>
-      <div class="setting-row"><span>アカウント</span><button id="settings-auth" type="button">login</button></div>
+      <div class="setting-row"><span>アカウント</span><button id="settings-auth" type="button">login</button></div><button id="auth-button" type="button" hidden>login</button>
       <div class="setting-row"><span>時計表示</span><select id="clock-format"><option value="24">24時間</option><option value="12">12時間</option></select></div>
       <div class="setting-row"><span>天気更新</span><select id="weather-interval"><option value="10">10分</option><option value="30">30分</option><option value="60">60分</option></select></div>
       <div class="setting-row"><span>並び順</span><button id="reset-layout" type="button">初期化</button></div>
@@ -332,6 +333,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const clock = document.querySelector('#clock');
+    const ampm = document.querySelector('#ampm');
     const weatherDate = document.querySelector('#weather-date');
     const grid = document.querySelector('.grid');
     const editMode = document.querySelector('#edit-mode');
@@ -340,7 +342,9 @@
     let weatherRefreshTimer;
     const updateClock = () => {
       const now = new Date();
-      clock.textContent = new Intl.DateTimeFormat('ja-JP', { hour: '2-digit', minute: '2-digit', hour12: clockFormat === '12' }).format(now);
+      const parts = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: clockFormat === '12' }).formatToParts(now);
+      clock.textContent = `${parts.find((part) => part.type === 'hour').value}:${parts.find((part) => part.type === 'minute').value}`;
+      ampm.textContent = clockFormat === '12' ? parts.find((part) => part.type === 'dayPeriod')?.value || '' : '';
       weatherDate.textContent = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' }).format(now);
     };
     updateClock();
