@@ -18,8 +18,11 @@
       --page-text: #274052;
       --muted-text: #7890a0;
       --accent-color: #56bde9;
-      --display-color: rgba(232, 247, 255, .64);
-      --display-line: rgba(255, 255, 255, .84);
+      /* 背面ディスプレイの調整はこの2つだけで行えます。 */
+      --display-enabled: 1; /* 1 = 表示、0 = 非表示 */
+      --display-opacity: .42; /* 0.0〜1.0。小さいほど透明です。 */
+      --display-color: rgb(232 247 255 / var(--display-opacity));
+      --display-line: rgb(255 255 255 / var(--display-opacity));
       --key-background: rgba(255, 255, 255, .38);
       --key-background-hover: rgba(255, 255, 255, .55);
       --key-border: rgba(255, 255, 255, .52); /* 細い枠線 */
@@ -104,9 +107,10 @@
       align-content: center;
       gap: 5px;
       overflow: hidden;
-      border: 1px solid rgba(255,255,255,.46);
+      border: 1px solid var(--display-line);
       border-radius: calc(var(--key-radius) - 4px);
-      background: linear-gradient(145deg, rgba(255,255,255,.66), var(--display-color));
+      opacity: var(--display-enabled);
+      background: linear-gradient(145deg, rgb(255 255 255 / var(--display-opacity)), var(--display-color));
       box-shadow: inset 0 0 18px rgba(255,255,255,.42), inset 0 -8px 18px rgba(108, 188, 219, .08);
     }
     .display::after { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,.42), transparent 42%); content: ""; pointer-events: none; }
@@ -140,7 +144,7 @@
     .icon-image { position: relative; z-index: 2; display: block; width: clamp(1.35rem, 6vw, 4.2rem); height: clamp(1.35rem, 6vw, 4.2rem); object-fit: contain; opacity: .88; width: clamp(1.35rem, 34cqw, 4.2rem); height: clamp(1.35rem, 34cqw, 4.2rem); }
     .label { position: relative; z-index: 2; max-width: 100%; overflow: hidden; color: #476a7c; font-size: clamp(.55rem, 1.8vw, .82rem); font-size: clamp(.55rem, 10cqw, .82rem); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
     .value { position: relative; z-index: 2; color: var(--accent-color); font-size: clamp(.55rem, 2vw, 1rem); font-size: clamp(.55rem, 11cqw, 1rem); font-variant-numeric: tabular-nums; }
-    .empty .display { background: rgba(255,255,255,.25); box-shadow: inset 0 0 14px rgba(255,255,255,.48); }
+    .empty .display { background: rgb(255 255 255 / var(--display-opacity)); box-shadow: inset 0 0 14px rgb(255 255 255 / var(--display-opacity)); }
     .empty .cap { background: rgba(255,255,255,.12); opacity: .82; }
 
     @media (max-width: 420px) { .deck { width: 96vw; padding: 12px; } .deck-header { margin-bottom: 16px; } }
