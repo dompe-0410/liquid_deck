@@ -17,6 +17,10 @@
       --page-glow-c-size: 24vw;
       --page-text: #111827;
       --muted-text: #111827;
+      /* フォントと文字サイズはここでまとめて変更できます。 */
+      --font-ui: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-size-value: clamp(.75rem, 11cqw, 1.1rem);
+      --font-size-weather-date: clamp(.55rem, 9cqw, .78rem);
       --accent-color: #56bde9;
       /* 背面ディスプレイの調整はこの2つだけで行えます。 */
       --display-enabled: 0; /* 1 = 表示、0 = 非表示 */
@@ -48,7 +52,7 @@
       place-items: center;
       overflow-x: hidden;
       color: var(--page-text);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: var(--font-ui);
       /* 追加された画像を画面全体の背景に使います。 */
       /* 背景画像は使わず、下の光だけで明るい背景を作ります。 */
       background: var(--page-background);
@@ -83,7 +87,11 @@
     .deck { position: relative; z-index: 1; width: min(92vw, 760px); padding: clamp(16px, 4vw, 32px); }
     .deck-header { display: flex; align-items: end; justify-content: space-between; margin: 0 3px 22px; }
     .edit-toggle { display: flex; align-items: center; gap: 7px; color: #111827; font-size: .75rem; cursor: pointer; user-select: none; }
-    .edit-toggle input { width: 16px; height: 16px; accent-color: #111827; }
+    .edit-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+    .toggle-track { position: relative; display: inline-block; width: 36px; height: 20px; border-radius: 999px; background: rgba(17,24,39,.18); transition: background .15s ease; }
+    .toggle-track::after { position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.22); content: ""; transition: transform .15s ease; }
+    .edit-toggle input:checked + .toggle-track { background: #111827; }
+    .edit-toggle input:checked + .toggle-track::after { transform: translateX(16px); }
     h1 { margin: 0; color: #111827; font-size: clamp(1.35rem, 4vw, 2rem); font-weight: 650; letter-spacing: .06em; }
     .status { color: var(--muted-text); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; }
 
@@ -152,8 +160,8 @@
     .icon-image { position: relative; z-index: 2; display: block; width: clamp(1.35rem, 6vw, 4.2rem); height: clamp(1.35rem, 6vw, 4.2rem); object-fit: contain; opacity: .88; width: clamp(1.35rem, 34cqw, 4.2rem); height: clamp(1.35rem, 34cqw, 4.2rem); }
     /* Stream Deck風に、通常ボタンのラベルは表示しません。 */
     .label { display: none; }
-    .value { position: relative; z-index: 2; color: #111827; font-size: clamp(.75rem, 11cqw, 1.1rem); font-weight: 650; font-variant-numeric: tabular-nums; }
-    .weather-date { position: absolute; top: 10%; z-index: 2; color: #111827; font-size: clamp(.55rem, 9cqw, .78rem); font-weight: 650; }
+    .value { position: relative; z-index: 2; color: #111827; font-size: var(--font-size-value); font-weight: 650; font-variant-numeric: tabular-nums; }
+    .weather-date { position: relative; z-index: 2; color: #111827; font-size: var(--font-size-weather-date); font-weight: 650; }
     .weather-icon { position: relative; z-index: 2; width: clamp(1.7rem, 34cqw, 4.2rem); height: clamp(1.7rem, 34cqw, 4.2rem); object-fit: contain; }
     .empty .display { background: rgb(255 255 255 / var(--display-opacity)); box-shadow: inset 0 0 14px rgb(255 255 255 / var(--display-opacity)); }
     .empty .cap { background: rgba(255,255,255,.12); opacity: .82; }
@@ -171,10 +179,10 @@
     </filter>
   </svg>
   <main class="deck">
-    <header class="deck-header"><h1>Liquid Deck</h1><label class="edit-toggle"><input id="edit-mode" type="checkbox"><span>編集</span></label></header>
+    <header class="deck-header"><h1>Liquid Deck</h1><label class="edit-toggle"><input id="edit-mode" type="checkbox"><span class="toggle-track" aria-hidden="true"></span><span>編集</span></label></header>
     <section class="grid" aria-label="Liquid Deck buttons">
       <button class="button" aria-label="時計"><span class="display"></span><span class="cap"><span class="value" id="clock">--:--</span></span></button>
-      <button class="button" data-key="weather" aria-label="天気"><span class="display"></span><span class="cap"><span class="weather-date" id="weather-date">--/--</span><img class="weather-icon" src="./天気.png" alt="天気"></span></button>
+      <button class="button" data-key="weather" aria-label="天気"><span class="display"></span><span class="cap"><img class="weather-icon" src="./天気.png" alt="天気"><span class="weather-date" id="weather-date">--/--</span></span></button>
       <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./QR.png" alt="QR作成"><span class="label">QR作成</span></span></button>
       <button class="button"><span class="display"></span><span class="cap"><img class="icon-image" src="./リンク.png" alt="サイト"><span class="label">サイト</span></span></button>
       <button class="button" aria-label="カレンダー"><span class="display"></span><span class="cap"><img class="icon-image" src="./カレンダー.png" alt="カレンダー"></span></button>
@@ -216,6 +224,8 @@
     }
 
     let draggedButton = null;
+    let dragStartX = 0;
+    let dragStartY = 0;
     editMode.addEventListener('change', () => {
       grid.querySelectorAll('.button').forEach((button) => button.classList.toggle('editable', editMode.checked));
     });
@@ -224,8 +234,16 @@
       const button = event.target.closest('.button');
       if (!button) return;
       draggedButton = button;
+      dragStartX = event.clientX;
+      dragStartY = event.clientY;
       draggedButton.classList.add('dragging');
       draggedButton.setPointerCapture(event.pointerId);
+    });
+    grid.addEventListener('pointermove', (event) => {
+      if (!draggedButton) return;
+      const x = event.clientX - dragStartX;
+      const y = event.clientY - dragStartY;
+      draggedButton.style.transform = `translate(${x}px, ${y}px) scale(.96)`;
     });
     grid.addEventListener('pointerup', (event) => {
       if (!draggedButton) return;
@@ -239,6 +257,7 @@
         localStorage.setItem('liquid-deck-order', JSON.stringify([...grid.children].map((item) => item.dataset.slot)));
       }
       draggedButton.classList.remove('dragging');
+      draggedButton.style.transform = '';
       draggedButton.releasePointerCapture?.(event.pointerId);
       draggedButton = null;
     });
