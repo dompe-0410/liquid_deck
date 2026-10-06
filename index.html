@@ -576,7 +576,7 @@
     const calendarModal = document.querySelector('#calendar-modal');
     const calendarInput = document.querySelector('#calendar-url');
     const calendarStatus = document.querySelector('#calendar-status');
-    const calendarProxyUrl = 'https://mmxyzwydhewswlfpragp.supabase.co/functions/v1/calendar-proxy';
+    const calendarProxyUrl = 'https://mmxyzwydhewswlfpragp.supabase.co/functions/v1/smooth-task';
     const unfoldIcs = (text) => text.replace(/\r?\n[ \t]/g, '').replace(/\\,/g, ',').replace(/\\n/g, ' ');
     const parseCalendar = (text) => {
       const events = []; const blocks = unfoldIcs(text).split('BEGIN:VEVENT').slice(1);
