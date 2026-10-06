@@ -259,13 +259,12 @@
     };
     updateClock();
     setInterval(updateClock, 1000);
+    // 古いService Workerを解除し、端末ごとの古いキャッシュを残さないようにします。
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js?v=3', { updateViaCache: 'none' }).then((registration) => registration.update());
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (sessionStorage.getItem('liquid-deck-sw-refreshed') === '1') return;
-        sessionStorage.setItem('liquid-deck-sw-refreshed', '1');
-        window.location.reload();
-      });
+      navigator.serviceWorker.getRegistrations().then((registrations) => registrations.forEach((registration) => registration.unregister()));
+    }
+    if ('caches' in window) {
+      caches.keys().then((keys) => keys.filter((key) => key.startsWith('liquid-deck-')).forEach((key) => caches.delete(key)));
     }
 
     const qrModal = document.querySelector('#qr-modal');
