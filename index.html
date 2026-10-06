@@ -259,7 +259,14 @@
     };
     updateClock();
     setInterval(updateClock, 1000);
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').then((registration) => registration.update());
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js?v=3', { updateViaCache: 'none' }).then((registration) => registration.update());
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (sessionStorage.getItem('liquid-deck-sw-refreshed') === '1') return;
+        sessionStorage.setItem('liquid-deck-sw-refreshed', '1');
+        window.location.reload();
+      });
+    }
 
     const qrModal = document.querySelector('#qr-modal');
     const qrInput = document.querySelector('#qr-input');

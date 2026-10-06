@@ -1,4 +1,4 @@
-const CACHE_NAME = 'liquid-deck-v2';
+const CACHE_NAME = 'liquid-deck-v3';
 const ASSETS = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
@@ -16,6 +16,17 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  const requestUrl = new URL(event.request.url);
+  const isServiceWorker = requestUrl.pathname.endsWith('/sw.js');
+  const isNavigation = event.request.mode === 'navigate';
+  if (isServiceWorker) return;
+  if (isNavigation) {
+    event.respondWith(
+      fetch(new Request(event.request, { cache: 'no-store' }))
+        .catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
   event.respondWith(
     fetch(event.request)
       .then((response) => {
