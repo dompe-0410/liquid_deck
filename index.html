@@ -113,7 +113,7 @@
     }
     .button.editable { cursor: grab; }
     .button.editable:active { cursor: grabbing; }
-    .button.dragging { opacity: .45; transform: scale(.96); }
+    .button.dragging { z-index: 10; opacity: .45; transform: scale(.96); }
     .button.drop-target .cap { outline: 2px dashed rgba(17,24,39,.55); outline-offset: 4px; }
     .display {
       position: absolute;
@@ -156,6 +156,8 @@
     .button:hover .cap { background: linear-gradient(145deg, rgba(255,255,255,.28), rgba(255,255,255,.08)); border-color: #fff; }
     .button:active .cap { transform: translateY(var(--key-side-height)) scale(.975); box-shadow: var(--key-shadow-pressed); }
     .button:focus-visible .cap { outline: 3px solid rgba(86,189,233,.38); outline-offset: 4px; }
+    /* 画像や文字ではなく、常にボタン本体がドラッグを受け取ります。 */
+    .cap, .cap * { pointer-events: none; }
     .icon { position: relative; z-index: 2; color: #111827; font-size: clamp(1.25rem, 5vw, 2.15rem); line-height: 1; }
     .icon-image { position: relative; z-index: 2; display: block; width: clamp(1.35rem, 6vw, 4.2rem); height: clamp(1.35rem, 6vw, 4.2rem); object-fit: contain; opacity: .88; width: clamp(1.35rem, 34cqw, 4.2rem); height: clamp(1.35rem, 34cqw, 4.2rem); }
     /* Stream Deck風に、通常ボタンのラベルは表示しません。 */
@@ -233,6 +235,7 @@
       if (!editMode.checked) return;
       const button = event.target.closest('.button');
       if (!button) return;
+      event.preventDefault();
       draggedButton = button;
       dragStartX = event.clientX;
       dragStartY = event.clientY;
@@ -247,7 +250,9 @@
     });
     grid.addEventListener('pointerup', (event) => {
       if (!draggedButton) return;
-      const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('.button');
+      const target = document.elementsFromPoint(event.clientX, event.clientY)
+        .map((element) => element.closest('.button'))
+        .find((button) => button && button !== draggedButton && button.parentElement === grid);
       if (target && target !== draggedButton && target.parentElement === grid) {
         const buttonsNow = [...grid.children];
         const from = buttonsNow.indexOf(draggedButton);
@@ -261,6 +266,14 @@
       draggedButton.releasePointerCapture?.(event.pointerId);
       draggedButton = null;
     });
+    const cancelDrag = () => {
+      if (!draggedButton) return;
+      draggedButton.classList.remove('dragging');
+      draggedButton.style.transform = '';
+      draggedButton = null;
+    };
+    grid.addEventListener('pointercancel', cancelDrag);
+    grid.addEventListener('lostpointercapture', cancelDrag);
   </script>
 </body>
 </html>
